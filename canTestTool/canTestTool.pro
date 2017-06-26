@@ -4,20 +4,6 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = canTestTool
-TEMPLATE = app
-
-
-SOURCES += main.cpp\
-        mainwindow.cpp
-
-HEADERS  += mainwindow.h
-
-FORMS    += mainwindow.ui
-
-RESOURCES += \
-    ctt.qrc
+TEMPLATE = subdirs
+SUBDIRS = libQtDbc main
+main.depends = libQtDbc

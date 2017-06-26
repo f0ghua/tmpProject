@@ -16,6 +16,8 @@ public:
     ~MainWindow();
 
 private:
+    void cusomizePreference();
+
     Ui::MainWindow *ui;
 };
 

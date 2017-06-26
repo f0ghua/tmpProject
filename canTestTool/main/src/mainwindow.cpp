@@ -4,12 +4,8 @@
 #include <QDesktopWidget>
 #include <QFont>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+void MainWindow::cusomizePreference()
 {
-    ui->setupUi(this);
-
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
     QFont font;
     int fontId = QFontDatabase::addApplicationFont(":/fonts/LucidaTypewriterRegular.ttf");
@@ -23,15 +19,38 @@ MainWindow::MainWindow(QWidget *parent) :
         //font.setFamily(QStringLiteral("Courier"));
         font.setPointSize(9);
     }
-
     qApp->setFont(font);
 
     int h = availableGeometry.height() * 3 / 4;
     int w = h * 850 / 600;
     resize(w, h);
     setIconSize(QSize(16, 16));
+
     return;
 }
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    cusomizePreference();
+
+    /*
+    QString errorString;
+    m_canDevice = QCanBus::instance()->createDevice(p.backendName, p.deviceInterfaceName,
+                                                    &errorString);
+    if (!m_canDevice) {
+        showStatusMessage(tr("Error creating device '%1', reason: '%2'")
+                          .arg(p.backendName).arg(errorString));
+        return;
+    }
+    */
+
+    return;
+}
+
+
 
 MainWindow::~MainWindow()
 {
