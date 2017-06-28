@@ -37,13 +37,31 @@ win32 {
 	#DEFINES += Q_PLATFORM_WIN
 }
 
-SOURCES += main.cpp\
-        src/mainwindow.cpp
+SOURCES += \
+    src/main.cpp\
+    src/mainwindow.cpp \
+    src/ftworker.cpp \
+    src/hal.cpp \
+    src/xbusframe.cpp \
+    src/utils.cpp \
+    src/xbusmgr.cpp \
+    src/connectdialog.cpp \
+    src/xframelogger.cpp
 
 HEADERS  += \
-		src/mainwindow.h
+    src/mainwindow.h \
+    src/ftworker.h \
+    src/hal.h \
+    src/xbusframe.h \
+    src/xcommdefine.h \
+    src/utils.h \
+    src/xbusmgr.h \
+    src/connectdialog.h \
+    src/xframelogger.h
 
-FORMS    += ui/mainwindow.ui
+FORMS    += \
+    ui/mainwindow.ui \
+    ui/connectdialog.ui
 
 RESOURCES += \
     res/ctt.qrc

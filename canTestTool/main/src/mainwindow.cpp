@@ -1,8 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "connectdialog.h"
+#include "xbusmgr.h"
+#include "xframelogger.h"
 
 #include <QDesktopWidget>
 #include <QFont>
+#include <QDateTime>
+#include <QDebug>
 
 void MainWindow::cusomizePreference()
 {
@@ -35,24 +40,46 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     cusomizePreference();
-
-    /*
-    QString errorString;
-    m_canDevice = QCanBus::instance()->createDevice(p.backendName, p.deviceInterfaceName,
-                                                    &errorString);
-    if (!m_canDevice) {
-        showStatusMessage(tr("Error creating device '%1', reason: '%2'")
-                          .arg(p.backendName).arg(errorString));
-        return;
-    }
-    */
+    m_logger = new XFrameLogger(this);
+    m_logger->startLog("./log.bf", 1024*1024, 2);
+    m_busMgr = new XBusMgr(this);
+    m_connectDialog = new ConnectDialog(m_busMgr, this);
+    m_baseTime = QDateTime::currentMSecsSinceEpoch();
+    
+    connect(m_busMgr, &XBusMgr::sigUpdateDeviceList, m_connectDialog, &ConnectDialog::updateDeviceList);
+    connect(m_busMgr, &XBusMgr::sigUpdateDeviceConnState, m_connectDialog, &ConnectDialog::updateDeviceConnState);
+    connect(m_busMgr, &XBusMgr::frameReceived, this, &MainWindow::processReceivedMessages);
 
     return;
 }
-
-
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::processReceivedMessages()
+{
+    if (!m_busMgr)
+        return;
+
+    while (m_busMgr->framesAvailable()) {
+        const XBusFrame frame = m_busMgr->readFrame();
+
+        if (!frame.isValid())
+            continue;
+
+        m_logger->writeFrame(frame, m_baseTime);
+        //qDebug() << frame.toString(m_baseTime);
+    }
+
+
+}
+
+void MainWindow::on_actionConnect_triggered()
+{
+    if(m_connectDialog->exec() == QDialog::Accepted) {
+    
+    }
+}
+
