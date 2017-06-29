@@ -49,7 +49,8 @@ SOURCES += \
     src/xframelogger.cpp \
     src/xcmdframe.cpp \
     src/busengine.cpp \
-    src/deviceconfig.cpp
+    src/deviceconfig.cpp \
+    src/serialworker.cpp
 
 HEADERS  += \
     src/mainwindow.h \
@@ -63,7 +64,8 @@ HEADERS  += \
     src/xframelogger.h \
     src/xcmdframe.h \
     src/busengine.h \
-    src/deviceconfig.h
+    src/deviceconfig.h \
+    src/serialworker.h
 
 FORMS    += \
     ui/mainwindow.ui \

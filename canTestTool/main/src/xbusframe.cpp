@@ -14,9 +14,9 @@ struct busType_t {
 };
 
 static const struct busType_t g_busTypes[] = {
-    {PROTOCOL_ID_CAN1,  BUS_CAN1,   QStringLiteral("CAN 1")},
-    {PROTOCOL_ID_CAN2,  BUS_CAN2,   QStringLiteral("CAN 2")},
-    {PROTOCOL_ID_LIN,   BUS_LIN1,   QStringLiteral("LIN 1")}
+    {PROTOCOL_ID_CAN1,  BUS_CAN1,   QStringLiteral("CAN1")},
+    {PROTOCOL_ID_CAN2,  BUS_CAN2,   QStringLiteral("CAN2")},
+    {PROTOCOL_ID_LIN,   BUS_LIN1,   QStringLiteral("LIN1")}
 };
 
 int XBusFrame::getBusTypeIndex(quint8 value)
@@ -678,6 +678,6 @@ QString XBusFrame::toString(qint64 baseTime) const
         arg(isReceived()?QStringLiteral("Rx"):QStringLiteral("Tx")).\
         arg(getBusTypeDescriptionByIndex(m_bus)).\
         arg(Utils::Base::formatHexNum(id())).\
-        arg(Utils::Base::formatByteArray(&m_data));
+        arg(m_data.toHex().constData());
 }
 

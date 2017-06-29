@@ -1,6 +1,7 @@
 #include "ftworker.h"
-#include "xbusmgr.h"
 #include "busengine.h"
+#include "serialworker.h"
+#include "xbusmgr.h"
 
 #include <QFileInfo>
 #include <QProcess>
@@ -16,8 +17,8 @@ void XBusMgr::initHAL(int mode)
 
     //checkBusEngine();
     //registerHAL(new BusEngine(this));
-    registerHAL(new FtWorker(this));
-    //registerHAL(new SerialWorker(this));
+    //registerHAL(new FtWorker(this));
+    registerHAL(new SerialWorker(this));
 
     setupSig(m_hals[mode]);
 }
