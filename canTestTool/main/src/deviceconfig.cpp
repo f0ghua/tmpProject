@@ -1373,6 +1373,27 @@ void DeviceConfig::loadBlankProject()
 */
 }
 
+void DeviceConfig::changeEvent(QEvent *event)
+{   
+    QDialog::changeEvent(event);
+	return;
+	
+    if (event->type() == QEvent::ActivationChange)
+    {
+        if(this->isActiveWindow())
+        {
+            // widget is now active
+			this->setWindowOpacity(1);
+
+        }
+        else
+        {
+            // widget is now inactive        
+			this->setWindowOpacity(0.5);
+        }
+    }
+}
+
 void DeviceConfig::on_btnCancel_clicked()
 {
     /*

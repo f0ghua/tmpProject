@@ -173,6 +173,7 @@ signals:
 		
 public slots:
 	void handleCmdResponse(const QByteArray &);
+	void changeEvent(QEvent *event);
 	
 private slots:
 	void on_treeWidget_clicked(const QModelIndex &index);

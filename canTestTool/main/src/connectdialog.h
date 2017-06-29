@@ -22,7 +22,7 @@ public slots:
    	void updateDeviceConnState(int);
     void updateDeviceList(QStringList listDev);
     void handleCmdResponse(const QByteArray &);
-    
+	
 private slots:
     void on_m_pbConnect_clicked();
     void on_m_cbDeviceList_activated(const QString &arg1);

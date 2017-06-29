@@ -147,3 +147,11 @@ void ConnectDialog::on_m_pbRefresh_clicked()
     initHwDevAvailList();
     m_currentHW = "";
 }
+
+/*
+bool ConnectDialog::eventFilter(QObject *watched, QEvent *event)
+{
+
+}
+*/
+
