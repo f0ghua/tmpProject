@@ -21,20 +21,29 @@ public:
     void openDevice(int, QString dev) { emit sigOpenDevice(dev); }
     void closeDevice(int f) { emit sigCloseDevice(f); }
     void getAllDevice(int mode);
+    void sendMsgRaw(QByteArray &raw) { emit sigSendRawData(raw); }
+    int checkBusEngine();
+    int getHwReady() { return m_hwReady; }
     
 signals:
     void frameReceived();
 	void sigRefreshDevice();
 	void sigOpenDevice(QString);
 	void sigCloseDevice(int);
-	void sendRawData(const QByteArray &raw);
+	void sigSendRawData(const QByteArray &raw);
 	void sendRawFrame(const XBusFrame *);
 	void sigUpdateDeviceList(QStringList);
 	void sigUpdateDeviceConnState(int);
+	void sigCmdFrameResponse(const QByteArray&);
 	
 public slots:
     void updateDeviceList(QStringList dl) { emit sigUpdateDeviceList(dl); }
-    void updateDeviceConnState(int s) { emit sigUpdateDeviceConnState(s); }
+    void updateDeviceConnState(int s) 
+    { 
+        m_hwReady = (s == 0)?true:false;
+        emit sigUpdateDeviceConnState(s); 
+    }
+    void handleCmdResponse(const QByteArray &raw) { emit sigCmdFrameResponse(raw); }
     
 private:
     void registerHAL(HAL *hal) {m_hals << hal; hal->start();}	
@@ -43,6 +52,7 @@ private:
     
     QList <HAL *> m_hals;
     HAL *m_currentHal = NULL;
+    bool m_hwReady = false;
     
     QVector<XBusFrame> m_incomingFrames;
     QMutex m_incomingFramesGuard;

@@ -1,7 +1,10 @@
+#include "xcommdefine.h"
 #include "xbusmgr.h"
 #include "ftworker.h"
 
 #include <pthread.h>
+#include <windows.h>
+
 #include <QDebug>
 #include <QObject>
 
@@ -48,7 +51,7 @@ FtWorker::FtWorker(XBusMgr *mgr) :HAL(mgr, 1)
 	RxBuffer = (char *)calloc(128 * 1024, 1);
 }
 
-void FtWorker::PhyOpenDevice(QString tryDev, EVENT_HANDLE *eh)
+void FtWorker::PhyOpenDevice(QString tryDev, HANDLE eh)
 {
 	FT_STATUS ftStatus;
 	DWORD EventDWord, TxBytes, RxBytes, EventMask = FT_EVENT_RXCHAR | FT_EVENT_MODEM_STATUS;
@@ -100,8 +103,16 @@ void FtWorker::PhyOpenDevice(QString tryDev, EVENT_HANDLE *eh)
 		printf("set rts fail\n");
 	}
 
-	qDebug() <<dev << " open ok";;
-	CreateEvent(eh);
+	ftStatus = FT_SetLatencyTimer(ftHandle, 2);
+	if (ftStatus == FT_OK) {
+		qDebug() << "set timeouts ok";
+	}
+	else {
+		qDebug() << "set timeouts fail";
+	}	
+
+	qDebug() << dev << " open ok";;
+    eh = ::CreateEvent(NULL, false, false, reinterpret_cast<LPCWSTR>(""));
 
 	ftStatus = FT_SetEventNotification(ftHandle, EventMask, (PVOID)eh);
 	if (ftStatus == FT_OK) {
@@ -183,28 +194,9 @@ void FtWorker::sigCloseDevice(int)
 	dev = "";
 }
 
-void FtWorker::CreateEvent(EVENT_HANDLE *eh)
-{
-	pthread_mutex_init(&(eh->eMutex), NULL);
-	pthread_cond_init(&(eh->eCondVar), NULL);
-}
-
-void FtWorker::WaitForSingleObject(EVENT_HANDLE *eh, int delay)
-{
-	struct timeval tv;
-	struct timespec ts;
-
-	pthread_mutex_lock(&(eh->eMutex));
-	gettimeofday(&tv, NULL);
-	ts.tv_sec = tv.tv_sec + delay;
-	ts.tv_nsec = tv.tv_usec * 1000;
-	pthread_cond_timedwait(&(eh->eCondVar), &(eh->eMutex), &ts);
-	pthread_mutex_unlock(&(eh->eMutex));
-}
-
 void FtWorker::run()
 {
-	EVENT_HANDLE eh;
+	HANDLE eh;
 
 	while(shutdown == 0) {
 		if(ftHandle == NULL) {
@@ -220,11 +212,11 @@ void FtWorker::run()
 				listDevice();
 				continue;
 			}
-			PhyOpenDevice(dev, &eh);
+			PhyOpenDevice(dev, eh);
 			getv = 1;
 		}
 
-		WaitForSingleObject(&eh, 1);
+        ::WaitForSingleObject(eh, INFINITE);
 
 		if(needToClose == 1)
 			PhyCloseDevice();

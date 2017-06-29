@@ -54,4 +54,12 @@
 
 #define ARRAY_SIZE(x)               sizeof((x))/sizeof((x)[0])
 
+enum {
+    OPEN_SUCC   = 0,
+    OPEN_ERR    = 1,
+    CLOSE_SUCC  = 2,
+    CLOSE_ERR   = 3,
+    DEV_UNKNOWN
+};
+
 #endif // XCOMMDEFINE_H

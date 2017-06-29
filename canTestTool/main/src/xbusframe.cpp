@@ -252,8 +252,16 @@ int XBusFrame::parseCanFrame(const QByteArray &data, int offset, bool isComplete
     }
     
 	if (m_isTimeStampInc) {
-		m_timestamp = (data.at(i++) & 0xFF) << 8;
-		m_timestamp |= (data.at(i) & 0xFF);
+        int tsLen = data.size() - i;
+        if (tsLen == 2) {
+            m_timestamp = (data.at(i++) & 0xFF) << 8;
+            m_timestamp |= (data.at(i) & 0xFF);
+        } else {
+            m_timestamp = (data.at(i++) & 0xFF) << 24;
+            m_timestamp |= (data.at(i++) & 0xFF) << 16;
+            m_timestamp |= (data.at(i++) & 0xFF) << 8;
+            m_timestamp |= (data.at(i) & 0xFF);
+        }
 	}
 
 	return 0;
@@ -660,12 +668,10 @@ QByteArray XBusFrame::buildLinFrame(quint8 id, QByteArray &data, quint8 chksum)
 
 QString XBusFrame::toString(qint64 baseTime) const
 {
-    qint64 elapsedMs = (m_localTimeStamp > baseTime)?
-        (m_localTimeStamp - baseTime):
+    qint64 elapsedMs = (m_timestamp > baseTime)?
+        (m_timestamp - baseTime):
         (QDateTime::currentMSecsSinceEpoch() - baseTime);
-#ifndef F_NO_DEBUG
-    qDebug() << QObject::tr("l = %1, b = %2").arg(m_localTimeStamp).arg(baseTime);
-#endif
+
     QString ts = QString("%1.%2").arg(elapsedMs/1000).arg(elapsedMs%1000,3,10,QChar('0'));
     return QString("%1 %2 %3 %4 %5").\
         arg(ts).\

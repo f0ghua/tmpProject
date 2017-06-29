@@ -1,8 +1,12 @@
 #include "connectdialog.h"
 #include "ui_connectdialog.h"
 #include "xbusmgr.h"
-//#include "xcmdframe.h"
-//#include "utils.h"
+#include "xcmdframe.h"
+#include "utils.h"
+
+#include <QTimer>
+#include <QDebug>
+#include <QDateTime>
 
 //const char *ConnectDialog::selectDev = "Select...";
 const char *ConnectDialog::CONS_disconnect = "Disconnect...";
@@ -22,12 +26,12 @@ ConnectDialog::ConnectDialog(XBusMgr *mgr, QWidget *parent) :
 */
     
     initHwDevAvailList();
-/*
+
     QObject::connect(m_mgr, 
-        &XBusMgr::cmdFrameResponse,
+        &XBusMgr::sigCmdFrameResponse,
         this, 
         &ConnectDialog::handleCmdResponse);
-*/        
+        
 }
 
 ConnectDialog::~ConnectDialog()
@@ -57,20 +61,28 @@ void ConnectDialog::updateDeviceConnState(int success)
 
 	if (success == 0) { //connnected
 		ui->m_lbDeviceStatus->setText(QStringLiteral("Connected"));
-/*
+
         // query device version
         isQueryResponseTimeout = false;
 		ui->m_pteDeviceInfo->clear();
+		
 		// enable interfaces
 		//raw = XCmdFrame::buildCfgCmdEnableInterfaces();
 		//m_pro->sendMsgRaw(raw);
+
+        // enable long timestamp
+		raw = XCmdFrame::buildCfgCmdTimpStampMode();
+		m_mgr->sendMsgRaw(raw);
 		
 		raw = XCmdFrame::buildCfgCmdGetVersion();
-		m_pro->sendMsgRaw(raw);
+		m_mgr->sendMsgRaw(raw);
+#ifndef F_NO_DEBUG
+        qDebug() << tr("[%1], send cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
+#endif		
 	    QTimer::singleShot(500, this, [=](){
             isQueryResponseTimeout = true;
         });
-*/
+
 	} else {
 		ui->m_lbDeviceStatus->setText(QStringLiteral("Disconnected"));
 	}
@@ -86,7 +98,7 @@ void ConnectDialog::handleCmdResponse(const QByteArray &raw)
     if (isQueryResponseTimeout) {
         return;
     }
-/*
+
     XCmdFrame frame(raw);
 
     QString response = frame.handleCmdResponse(XCmdFrame::CMD_CFG_REQSWVER);
@@ -98,7 +110,7 @@ void ConnectDialog::handleCmdResponse(const QByteArray &raw)
         }
         ui->m_pteDeviceInfo->appendPlainText(response);
     }
-*/
+
 }
 
 void ConnectDialog::on_m_pbConnect_clicked()

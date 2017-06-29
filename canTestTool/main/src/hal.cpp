@@ -3,6 +3,7 @@
 #include "xbusmgr.h"
 
 #include <QDebug>
+#include <QDateTime>
 
 unsigned char HAL::ffFlag = 0;
 static const char g_frameEndStr[2] = {(char)0xFF, (char)0x00};
@@ -49,10 +50,13 @@ void HAL::handleFullData(const QByteArray &raw)
 	XBusFrame frame(raw);
 
 	if (XBusFrame::isCommandFrame(raw)) {
+#ifndef F_NO_DEBUG
+        qDebug() << tr("[%1], got cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
+#endif
+
 		emit cmdFrameResponse(raw);
 	}
     else {
-        frame.setLocalTimeStamp(QDateTime::currentMSecsSinceEpoch());
         m_mgr->enqueueReceivedFrame(frame);
 		framesRapid++;
 	}

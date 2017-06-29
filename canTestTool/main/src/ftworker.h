@@ -7,14 +7,6 @@
 #include <QMutex>
 #include <QWaitCondition>
 
-enum {
-    OPEN_SUCC   = 0,
-    OPEN_ERR    = 1,
-    CLOSE_SUCC  = 2,
-    CLOSE_ERR   = 3,
-    DEV_UNKNOWN
-};
-
 class XBusMgr;
 
 #ifdef Q_OS_WIN
@@ -46,9 +38,9 @@ private:
 
 	void PhyCloseDevice();
 	void halWrite(QByteArray &);
-	void CreateEvent(EVENT_HANDLE *eh);
-	void WaitForSingleObject(EVENT_HANDLE *eh, int delay);
-	void PhyOpenDevice(QString tryDev, EVENT_HANDLE *);
+	void CreateEvent(HANDLE eh);
+	void WaitForSingleObject(HANDLE eh, int delay);
+	void PhyOpenDevice(QString tryDev, HANDLE eh);
 	void dealWithEvent();
 	void dealWithRx(int);
 	void listDevice();

@@ -82,7 +82,6 @@ public:
 			m_data[i] = ch;
 		}
 	}
-	void setLocalTimeStamp(qint64 lts) { m_localTimeStamp = lts; }
 	quint64 timestamp() const { return m_timestamp; }
 	bool isValid() const { return m_isValidFrame; }
 	bool isReceived() const { return !m_isTxFrame; }
@@ -136,7 +135,6 @@ protected:
 	QByteArray m_data; // msg data, no include header and tailer
 	quint8 m_completeCode;
 	quint64 m_timestamp;
-	qint64 m_localTimeStamp;
 
 private:
 	void setLINId(quint8 id);

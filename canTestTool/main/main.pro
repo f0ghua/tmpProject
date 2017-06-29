@@ -28,7 +28,7 @@ CONFIG(debug, debug|release): {
     DEFINES += F_DISABLE_CRASHDUMP
 }
 
-#QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-parameter -Wno-unused-variable
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-parameter -Wno-unused-variable
 
 win32 {
 	# windows only
@@ -46,7 +46,10 @@ SOURCES += \
     src/utils.cpp \
     src/xbusmgr.cpp \
     src/connectdialog.cpp \
-    src/xframelogger.cpp
+    src/xframelogger.cpp \
+    src/xcmdframe.cpp \
+    src/busengine.cpp \
+    src/deviceconfig.cpp
 
 HEADERS  += \
     src/mainwindow.h \
@@ -57,11 +60,15 @@ HEADERS  += \
     src/utils.h \
     src/xbusmgr.h \
     src/connectdialog.h \
-    src/xframelogger.h
+    src/xframelogger.h \
+    src/xcmdframe.h \
+    src/busengine.h \
+    src/deviceconfig.h
 
 FORMS    += \
     ui/mainwindow.ui \
-    ui/connectdialog.ui
+    ui/connectdialog.ui \
+    ui/deviceconfig.ui
 
 RESOURCES += \
     res/ctt.qrc

@@ -3,11 +3,19 @@
 #include "connectdialog.h"
 #include "xbusmgr.h"
 #include "xframelogger.h"
+#include "deviceconfig.h"
 
 #include <QDesktopWidget>
 #include <QFont>
 #include <QDateTime>
 #include <QDebug>
+
+MainWindow *MainWindow::m_selfRef = NULL;
+
+MainWindow *MainWindow::getReference()
+{
+    return m_selfRef;
+}
 
 void MainWindow::cusomizePreference()
 {
@@ -44,7 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_logger->startLog("./log.bf", 1024*1024, 2);
     m_busMgr = new XBusMgr(this);
     m_connectDialog = new ConnectDialog(m_busMgr, this);
-    m_baseTime = QDateTime::currentMSecsSinceEpoch();
+    //m_configDialog = new DeviceConfig(m_busMgr, this);
+    m_baseTime = -1;
     
     connect(m_busMgr, &XBusMgr::sigUpdateDeviceList, m_connectDialog, &ConnectDialog::updateDeviceList);
     connect(m_busMgr, &XBusMgr::sigUpdateDeviceConnState, m_connectDialog, &ConnectDialog::updateDeviceConnState);
@@ -69,8 +78,14 @@ void MainWindow::processReceivedMessages()
         if (!frame.isValid())
             continue;
 
+        if (m_baseTime == -1) {
+            m_baseTime = frame.timestamp();
+        }
+
         m_logger->writeFrame(frame, m_baseTime);
-        //qDebug() << frame.toString(m_baseTime);
+#ifndef F_NO_DEBUG        
+        qDebug() << frame.toString(m_baseTime);
+#endif
     }
 
 
@@ -83,3 +98,15 @@ void MainWindow::on_actionConnect_triggered()
     }
 }
 
+
+void MainWindow::on_actionDevice_Config_triggered()
+{
+    if (!m_configDialog) {
+        m_configDialog = new DeviceConfig(m_busMgr, this);
+        m_configDialog->setModal(false);
+    }
+    //m_deviceConfigDialog->setAttribute(Qt::WA_DeleteOnClose);
+    //m_deviceConfigDialog->show();
+    m_configDialog->initAndShow();
+
+}
