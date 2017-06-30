@@ -9,7 +9,7 @@
 #include <QDesktopWidget>
 #include <QFont>
 #include <QDateTime>
-#include <QAxObject>
+//#include <QAxObject>
 #include <QDebug>
 
 typedef struct SignalInfo_t {
@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //m_configDialog = new DeviceConfig(m_busMgr, this);
     m_baseTime = -1;
     buildSignalMaps();
+    loadScripts();
 
 	m_tickTimer = new QTimer();
 	m_tickTimer->setInterval(1000);
@@ -128,13 +129,26 @@ void MainWindow::buildSignalMaps()
 void MainWindow::loadScripts()
 {
     scriptConfigItems.clear();
+
+    for (int i = 0; i < 10; ++i) {
+        ScriptConfigItem item;
+        item.seq = i/2 + 1;
+        item.sendTime = i*6;
+        item.checkTime = (i+1)*6;
+        item.ciddValue = i*10;
+        item.tmValue = i*200;
+
+        scriptConfigItems.append(item);
+    }
+
+ /*
     QAxObject excel("Excel.Application");
     excel.setProperty("Visible", true);
     QAxObject *work_books = excel.querySubObject("WorkBooks");
     work_books->dynamicCall("Open (const QString&)", QString("./script.xls"));
     QVariant title_value = excel.property("Caption");  //获取标题
     qDebug()<<QString("excel title : ")<<title_value;
-
+*/
 }
 
 int MainWindow::getSignalPhyValue(const QString &name, const QByteArray &data, double *value)
