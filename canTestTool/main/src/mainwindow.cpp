@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //m_configDialog = new DeviceConfig(m_busMgr, this);
     m_baseTime = -1;
     buildSignalMaps();
+    initTxMessages();
     loadScripts();
 
 	m_tickTimer = new QTimer();
@@ -128,7 +129,7 @@ void MainWindow::buildSignalMaps()
 
 void MainWindow::loadScripts()
 {
-    scriptConfigItems.clear();
+    m_scriptConfigItems.clear();
 
     for (int i = 0; i < 10; ++i) {
         ScriptConfigItem item;
@@ -138,7 +139,7 @@ void MainWindow::loadScripts()
         item.ciddValue = i*10;
         item.tmValue = i*200;
 
-        scriptConfigItems.append(item);
+        m_scriptConfigItems.append(item);
     }
 
  /*
@@ -336,6 +337,167 @@ void MainWindow::processReceivedMessages()
     }
 }
 
+void MainWindow::updateTxMessage_0x133(double phyValue)
+{
+    PeriodMessage &pm = m_periodMessages[MSG_0x133];
+    QByteArray &payload = pm.data;
+
+    if (pm.pMsg != NULL) {
+        Vector::DBC::Signal *pSignal = &(pm.pMsg->m_signals["ReMotTqReq"]);
+        double rawValue = pSignal->physicalToRawValue(phyValue);
+        pSignal->encode((quint8 *)payload.data(), rawValue);
+    }
+#ifndef F_NO_DEBUG
+    qDebug() << tr("[0x133]update: H:%1, I:%2, P:%3, D:%4").\
+                arg(pm.header).\
+                arg(Utils::Base::formatHexNum(pm.id)).\
+                arg(pm.period).\
+                arg(Utils::Base::formatByteArray(&pm.data));
+#endif
+}
+
+void MainWindow::updateTxMessage_0x051(double phyValue)
+{
+    PeriodMessage &pm = m_periodMessages[MSG_0x051];
+    QByteArray &payload = pm.data;
+
+    if (pm.pMsg != NULL) {
+        Vector::DBC::Signal *pSignal = &(pm.pMsg->m_signals["HCU01_Spd_Req"]);
+        double rawValue = pSignal->physicalToRawValue(phyValue);
+        pSignal->encode((quint8 *)payload.data(), rawValue);
+    }
+#ifndef F_NO_DEBUG
+    qDebug() << tr("[0x051]update: H:%1, I:%2, P:%3, D:%4").\
+                arg(pm.header).\
+                arg(Utils::Base::formatHexNum(pm.id)).\
+                arg(pm.period).\
+                arg(Utils::Base::formatByteArray(&pm.data));
+#endif
+}
+
+void MainWindow::initTxMessages()
+{
+    initTxMessage_0x133();
+    initTxMessage_0x051();
+    initTxMessage_0x427();
+}
+
+void MainWindow::initTxMessage_0x133()
+{
+    PeriodMessage &pm = m_periodMessages[MSG_0x133];
+
+    //QString signalName = "ReMotTqReq";
+    /*
+    Vector::DBC::Signal *pSignal = pMsg->findSignalByName(signalName);
+    if (pSignal == NULL)
+        continue;
+    */
+    buildPeriodMessage(0, 0x133, &pm);
+    pm.period = 10;
+    pm.enable = 1;
+
+    QByteArray &payload = pm.data;
+    if (pm.pMsg != NULL) {
+        pm.pMsg->m_signals["ReMotMdlReq"].encode((quint8 *)payload.data(), 0x2);
+    }
+
+#ifndef F_NO_DEBUG
+    qDebug() << tr("[0x133]init H:%1, I:%2, P:%3, D:%4").\
+                arg(pm.header).\
+                arg(Utils::Base::formatHexNum(pm.id)).\
+                arg(pm.period).\
+                arg(Utils::Base::formatByteArray(&pm.data));
+#endif
+}
+
+void MainWindow::initTxMessage_0x051()
+{
+    PeriodMessage &pm = m_periodMessages[MSG_0x051];
+
+    buildPeriodMessage(1, 0x051, &pm);
+    pm.period = 20;
+    pm.enable = 1;
+
+    QByteArray &payload = pm.data;
+    if (pm.pMsg != NULL) {
+        pm.pMsg->m_signals["HCU01_Controller_Switch_Req"].encode((quint8 *)payload.data(), 0xA);
+        pm.pMsg->m_signals["HCU01_Mode_Req"].encode((quint8 *)payload.data(), 0x8);
+        //pm.pMsg->m_signals["HCU01_d_axis_v_phase_i_Torq_req"].encode((quint8 *)payload.data(), 0);
+        //pm.pMsg->m_signals["HCU01_q_axis_i_angle_req"].encode((quint8 *)payload.data(), 0);
+    }
+
+#ifndef F_NO_DEBUG
+    qDebug() << tr("[0x051]init H:%1, I:%2, P:%3, D:%4").\
+                arg(pm.header).\
+                arg(Utils::Base::formatHexNum(pm.id)).\
+                arg(pm.period).\
+                arg(Utils::Base::formatByteArray(&pm.data));
+#endif
+}
+
+void MainWindow::initTxMessage_0x427()
+{
+    PeriodMessage &pm = m_periodMessages[MSG_0x427];
+
+    pm.header = 0;
+    pm.id = 0x427;
+    QByteArray &payload = pm.data;
+    QByteArray ba(8, 0);
+    ba[0]= 0x21;
+    payload.append(ba);
+    pm.pMsg = NULL;
+    pm.period = 100;
+    pm.enable = 1;
+}
+
+int MainWindow::buildPeriodMessage(int bus, quint16 msgId, PeriodMessage *pPm)
+{
+    Vector::DBC::Network *pNet = m_busMgr->getDbcNetwork(bus);
+    if (pNet == NULL)
+        return -1;
+    Vector::DBC::Message *pMsg = pNet->findMsgByID(msgId);
+    if (pMsg == NULL)
+        return -1;
+
+    QByteArray &payload = pPm->data;
+    pPm->header = bus;
+    pPm->id = msgId;
+    QByteArray ba(pMsg->size, 0);
+    payload.append(ba);
+    pPm->pMsg = pMsg;
+
+    return 0;
+}
+
+int MainWindow::buildPeriodMessageEx(int bus, quint16 msgId, PeriodMessage *pPm)
+{
+    Vector::DBC::Network *pNet = m_busMgr->getDbcNetwork(bus);
+    if (pNet == NULL)
+        return -1;
+    Vector::DBC::Message *pMsg = pNet->findMsgByID(msgId);
+    if (pMsg == NULL)
+        return -1;
+
+    QByteArray &payload = pPm->data;
+    pPm->header = bus;
+    pPm->id = pMsg->id;
+    QByteArray ba(pMsg->size, 0);
+    payload.append(ba);
+
+    QMap<QString, Vector::DBC::Signal>::const_iterator end = pMsg->m_signals.constEnd();
+    for (QMap<QString, Vector::DBC::Signal>::const_iterator ci = pMsg->m_signals.constBegin();
+            ci != end;
+            ci++) {
+        const Vector::DBC::Signal *pSignal = &ci.value();
+        double rawValue = DBCHelper::getDefaultSignalValue(pSignal, pNet, NULL);
+        pSignal->encode((uint8_t *)payload.data(), rawValue);
+    }
+    pPm->period =
+        DBCHelper::getMessageCycleTime(pMsg, pNet, (quint8 *)payload.data());
+
+    return 0;
+}
+
 static inline QString sec2HumanTime(qint64 seconds)
 {
     qint64 days = seconds/86400;
@@ -354,14 +516,26 @@ void MainWindow::handleTick()
 #ifndef F_NO_DEBUG        
     //qDebug() << tr("tick timer %1").arg(QDateTime::currentMSecsSinceEpoch());
 #endif    
+    ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];
 
-
-    ++m_curCycleStep;
-    ui->leCurCycleStep->setText(QString::number(m_curCycleStep));
     ++m_curCycleElapsedTime;
     ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
     ++m_elapsedTime;
     ui->leElapsedTime->setText(sec2HumanTime(m_elapsedTime));
+
+    if (m_curCycleElapsedTime == item.checkTime) {
+        // do check
+
+        // go next step
+        ++m_curCycleStep;
+        ui->leCurCycleStep->setText(QString::number(m_curCycleStep));
+    }
+
+    if (m_curCycleElapsedTime == item.sendTime) {
+        // update signal value according to script
+        updateTxMessage_0x133(item.ciddValue);
+        updateTxMessage_0x051(item.tmValue);
+    }
 }
 
 void MainWindow::on_actionConnect_triggered()
@@ -398,18 +572,24 @@ void MainWindow::on_pbStart_clicked()
     }
     on_pushButton_clicked();
 
-    // add TX messages to ictis, configure signal values according
-    // to first line of script
-
     // reset elapsed time to 0
     m_startTime = QDateTime::currentDateTime();
     QString date = QLocale( QLocale::C ).toString(m_startTime, "yyyy-MM-dd hh:mm:ss");
     ui->leStartTime->setText(date);
     
     m_elapsedTime = 0;
+    ui->leElapsedTime->setText(sec2HumanTime(m_elapsedTime));
     m_curCycleStep = 0;
+    ui->leCurCycleStep->setText(QString::number(m_curCycleStep));
     m_curCycleElapsedTime = 0;
-    
+    ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
+
+    // add TX messages to ictis, configure signal values according
+    // to first line of script
+    ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];
+    updateTxMessage_0x133(item.ciddValue);
+    updateTxMessage_0x051(item.tmValue);
+
     // start timer
     m_tickTimer->start();
 

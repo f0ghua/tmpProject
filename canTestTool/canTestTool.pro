@@ -5,7 +5,8 @@
 #-------------------------------------------------
 
 TEMPLATE = subdirs
-SUBDIRS = libQtDbc main
+SUBDIRS = main
+SUBDIRS += libQtDbc
 main.depends = libQtDbc
 
 RESOURCES += \
