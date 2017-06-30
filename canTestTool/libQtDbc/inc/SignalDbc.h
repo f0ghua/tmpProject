@@ -159,7 +159,7 @@ public:
 	double maximumPhyValue() const;
 	
     void encodePhy(uint8_t *msgData, uint64_t phyValue) const;
-    uint64_t decodePhy(uint8_t *msgData) const;
+    double decodePhy(const uint8_t *msgData) const;
 };
 
 }

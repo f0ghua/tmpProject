@@ -2,6 +2,7 @@
 #define XCANBUS_H
 
 #include "hal.h"
+#include "DBC.h"
 
 #include <QObject>
 #include <QMutex>
@@ -24,7 +25,14 @@ public:
     void sendMsgRaw(QByteArray &raw) { emit sigSendRawData(raw); }
     int checkBusEngine();
     int getHwReady() { return m_hwReady; }
-    
+    bool isRunning() { return m_isRunning; }
+    void stop() { m_isRunning = false; }
+    void start() { m_isRunning = true; }
+    Vector::DBC::Network *getDbcNetwork(int bus)
+    {
+        return m_dbcFile[bus]?m_dbcFile[bus]->network():NULL;
+    }
+
 signals:
     void frameReceived();
 	void sigRefreshDevice();
@@ -53,7 +61,10 @@ private:
     QList <HAL *> m_hals;
     HAL *m_currentHal = NULL;
     bool m_hwReady = false;
-    
+    bool m_isRunning = false;
+
+    Vector::DBC::File *m_dbcFile[2] = {NULL, };
+
     QVector<XBusFrame> m_incomingFrames;
     QMutex m_incomingFramesGuard;
     QVector<XBusFrame> m_outgoingFrames;

@@ -181,7 +181,7 @@ class Base
         static QString getDateTimeFormat1()
         {
             QDateTime time = QDateTime::currentDateTime();
-            QString date = QLocale( QLocale::C ).toString(time, "yyyyMMddhhmmss");
+            QString date = QLocale( QLocale::C ).toString(time, "yyyy-MM-dd hh:mm:ss");
             
             return date;
         }

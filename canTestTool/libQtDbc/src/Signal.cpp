@@ -445,10 +445,10 @@ void Signal::encodePhy(uint8_t *msgData, uint64_t phyValue) const
     encode(msgData, rawValue);
 }
 
-uint64_t Signal::decodePhy(uint8_t *msgData) const
+double Signal::decodePhy(const uint8_t *msgData) const
 {
     uint64_t rawValue = decode(msgData);
-    uint64_t phyValue = rawToPhysicalValue(rawValue);
+    double phyValue = rawToPhysicalValue(rawValue);
 
     return phyValue;
 }

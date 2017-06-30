@@ -157,6 +157,19 @@ void FtWorker::listDevice()
 		return;
 	}
 
+    if (numDevs > 0) {
+        FT_DEVICE_LIST_INFO_NODE *devInfo;
+        devInfo = (FT_DEVICE_LIST_INFO_NODE *)malloc(sizeof(FT_DEVICE_LIST_INFO_NODE)*numDevs);
+        ftStatus = ::FT_GetDeviceInfoList(devInfo, &numDevs);
+        if (ftStatus == FT_OK) {
+            for (unsigned int i = 0; i < numDevs; ++i) {
+                if (*devInfo[i].SerialNumber != '\0')
+                    deviceList << QString(devInfo[i].SerialNumber);
+            }
+        }
+        free(devInfo);
+    }
+#if 0
 	for (i = 0; i < (int)numDevs; i++) {
 		char SerialNumber[64];
 
@@ -172,7 +185,7 @@ void FtWorker::listDevice()
 
 		deviceList << QString(SerialNumber);
 	}
-
+#endif
 	emit updateDeviceList(deviceList);
 }
 

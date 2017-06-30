@@ -40,7 +40,7 @@
 
 #define LIN_CHECKSUM_LEN            1
 #define COMPLETE_CODE_LEN			1
-#define TIME_STAMP_LEN			 	2
+#define TIME_STAMP_LEN			 	4
 #define MSG_END_STR_LEN				2
 
 #define DIRECTION_RX 				0

@@ -44,19 +44,19 @@ void HAL::procRXChar(unsigned char c)
 void HAL::handleFullData(const QByteArray &raw)
 {
 #ifndef F_NO_DEBUG
-	//qDebug() << tr("hal read data [%1]").arg(Utils::Base::formatByteArray(&raw));
+    //qDebug() << tr("hal read data [%1]").arg(Utils::Base::formatByteArray(&raw));
 #endif
 
 	XBusFrame frame(raw);
 
 	if (XBusFrame::isCommandFrame(raw)) {
 #ifndef F_NO_DEBUG
-        qDebug() << tr("[%1], got cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
+        //qDebug() << tr("[%1], got cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
 #endif
 
 		emit cmdFrameResponse(raw);
 	}
-    else {
+    else if (m_mgr->isRunning()){
         m_mgr->enqueueReceivedFrame(frame);
 		framesRapid++;
 	}

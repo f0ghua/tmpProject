@@ -77,7 +77,7 @@ void ConnectDialog::updateDeviceConnState(int success)
 		raw = XCmdFrame::buildCfgCmdGetVersion();
 		m_mgr->sendMsgRaw(raw);
 #ifndef F_NO_DEBUG
-        qDebug() << tr("[%1], send cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
+        //qDebug() << tr("[%1], send cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
 #endif		
 	    QTimer::singleShot(500, this, [=](){
             isQueryResponseTimeout = true;

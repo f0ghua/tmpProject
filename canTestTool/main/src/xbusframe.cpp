@@ -252,16 +252,10 @@ int XBusFrame::parseCanFrame(const QByteArray &data, int offset, bool isComplete
     }
     
 	if (m_isTimeStampInc) {
-        int tsLen = data.size() - i;
-        if (tsLen == 2) {
-            m_timestamp = (data.at(i++) & 0xFF) << 8;
-            m_timestamp |= (data.at(i) & 0xFF);
-        } else {
-            m_timestamp = (data.at(i++) & 0xFF) << 24;
-            m_timestamp |= (data.at(i++) & 0xFF) << 16;
-            m_timestamp |= (data.at(i++) & 0xFF) << 8;
-            m_timestamp |= (data.at(i) & 0xFF);
-        }
+        m_timestamp = (data.at(i++) & 0xFF) << 24;
+        m_timestamp |= (data.at(i++) & 0xFF) << 16;
+        m_timestamp |= (data.at(i++) & 0xFF) << 8;
+        m_timestamp |= (data.at(i) & 0xFF);
 	}
 
 	return 0;
@@ -668,7 +662,7 @@ QByteArray XBusFrame::buildLinFrame(quint8 id, QByteArray &data, quint8 chksum)
 
 QString XBusFrame::toString(qint64 baseTime) const
 {
-    qint64 elapsedMs = (m_timestamp > baseTime)?
+    qint64 elapsedMs = (m_timestamp >= baseTime)?
         (m_timestamp - baseTime):
         (QDateTime::currentMSecsSinceEpoch() - baseTime);
 

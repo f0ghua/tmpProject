@@ -6,9 +6,29 @@
 #include <QFileInfo>
 #include <QProcess>
 
+static const char g_dbcNameCAN1[] = "./CIDD.dbc";
+static const char g_dbcNameCAN2[] = "./TM.dbc";
+
 XBusMgr::XBusMgr(QObject *parent) : QObject(parent)
 {
+    m_dbcFile[0] = new Vector::DBC::File();
+    if(m_dbcFile[0]->load(QString(g_dbcNameCAN1)) != Vector::DBC::Status::Ok) {
+#ifndef F_NO_DEBUG
+        qDebug() << tr("load dbc file %1 fail").arg(g_dbcNameCAN1);
+#endif
+        m_dbcFile[0] = NULL;
+    }
+
+    m_dbcFile[1] = new Vector::DBC::File();
+    if(m_dbcFile[1]->load(QString(g_dbcNameCAN2)) != Vector::DBC::Status::Ok) {
+#ifndef F_NO_DEBUG
+        qDebug() << tr("load dbc file %1 fail").arg(g_dbcNameCAN2);
+#endif
+        m_dbcFile[1] = NULL;
+    }
+
     initHAL(0);
+    start();
 }
 
 void XBusMgr::initHAL(int mode)
@@ -17,8 +37,8 @@ void XBusMgr::initHAL(int mode)
 
     //checkBusEngine();
     //registerHAL(new BusEngine(this));
-    //registerHAL(new FtWorker(this));
-    registerHAL(new SerialWorker(this));
+    registerHAL(new FtWorker(this));
+    //registerHAL(new SerialWorker(this));
 
     setupSig(m_hals[mode]);
 }
