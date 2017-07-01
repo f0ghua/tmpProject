@@ -5,11 +5,15 @@
 #include "xframelogger.h"
 #include "deviceconfig.h"
 #include "utils.h"
+#include "xcmdframe.h"
 
 #include <QDesktopWidget>
 #include <QFont>
 #include <QDateTime>
-//#include <QAxObject>
+#include <QFileInfo>
+#ifdef QAXOBJECT_SUPPORT
+#include <QAxObject>
+#endif
 #include <QDebug>
 
 typedef struct SignalInfo_t {
@@ -82,7 +86,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_logger->startLog("./log.bf", 1024*1024, 2);
     m_busMgr = new XBusMgr(this);
     m_connectDialog = new ConnectDialog(m_busMgr, this);
-    //m_configDialog = new DeviceConfig(m_busMgr, this);
     m_baseTime = -1;
     buildSignalMaps();
     initTxMessages();
@@ -127,29 +130,82 @@ void MainWindow::buildSignalMaps()
     }
 }
 
+#ifdef QAXOBJECT_SUPPORT
+static void castVariant2ListListVariant(const QVariant &var, QList<QList<QVariant>> &res)
+{
+    QVariantList varRows = var.toList();
+    if(varRows.isEmpty())
+    {
+        return;
+    }
+    const int rowCount = varRows.size();
+    QVariantList rowData;
+    for(int i=0;i<rowCount;++i)
+    {
+        rowData = varRows[i].toList();
+        res.push_back(rowData);
+    }
+}
+
+static QVariant readExcelSheet(QAxObject *sheet)
+{
+    QVariant var;
+    if (sheet != NULL && ! sheet->isNull())
+    {
+        QAxObject *usedRange = sheet->querySubObject("UsedRange");
+        if(NULL == usedRange || usedRange->isNull())
+        {
+            return var;
+        }
+        var = usedRange->dynamicCall("Value");
+        delete usedRange;
+    }
+    return var;
+}
+
+// sheet is from 1-N
+int MainWindow::readExcelSheet2List(int idx, QList<QList<QVariant>> &res)
+{
+    QFileInfo fi("./script.xls");
+    QAxObject excel("Excel.Application");
+    excel.setProperty("Visible", false);
+    QAxObject *work_books = excel.querySubObject("WorkBooks");
+    work_books->dynamicCall("Open (const QString&)", fi.absoluteFilePath());
+#ifndef F_NO_DEBUG
+    QVariant title_value = excel.property("Caption");
+    qDebug()<<QString("excel title : ")<<title_value;
+#endif
+    QAxObject *workbook = excel.querySubObject("ActiveWorkBook");
+    QAxObject *worksheet = workbook->querySubObject("Worksheets(int)", idx);
+    QVariant vars = readExcelSheet(worksheet);
+    castVariant2ListListVariant(vars, res);
+
+    return 0;
+}
+#endif
+
 void MainWindow::loadScripts()
 {
     m_scriptConfigItems.clear();
 
-    for (int i = 0; i < 10; ++i) {
-        ScriptConfigItem item;
-        item.seq = i/2 + 1;
-        item.sendTime = i*6;
-        item.checkTime = (i+1)*6;
-        item.ciddValue = i*10;
-        item.tmValue = i*200;
+ 	m_scriptConfigItems.append({1, 0, 6, 200, 10});
+	m_scriptConfigItems.append({2, 12, 36, 3900, 180});
+	//m_scriptConfigItems.append({3, 39, 179, 3900, 71});
 
-        m_scriptConfigItems.append(item);
+
+#ifdef QAXOBJECT_SUPPORT
+    QList<QList<QVariant>> llistVars;
+    readExcelSheet2List(1, llistVars);
+#ifndef F_NO_DEBUG
+    for (int col = 0; col < llistVars.size(); ++col) {
+        QList<QVariant> &rowList = llistVars[col];
+        for (int row = 0; row < rowList.size(); ++row) {
+            qDebug() << tr("[%1, %2] var = %3").arg(col).arg(row).arg(rowList[row].toDouble());
+        }
     }
+#endif
+#endif
 
- /*
-    QAxObject excel("Excel.Application");
-    excel.setProperty("Visible", true);
-    QAxObject *work_books = excel.querySubObject("WorkBooks");
-    work_books->dynamicCall("Open (const QString&)", QString("./script.xls"));
-    QVariant title_value = excel.property("Caption");  //获取标题
-    qDebug()<<QString("excel title : ")<<title_value;
-*/
 }
 
 int MainWindow::getSignalPhyValue(const QString &name, const QByteArray &data, double *value)
@@ -337,6 +393,26 @@ void MainWindow::processReceivedMessages()
     }
 }
 
+void MainWindow::updateDevicePMSGData(int index, const PeriodMessage &pm)
+{
+	QByteArray data;
+	QByteArray raw;
+
+	data.clear();
+	data.append(XBusFrame::buildIdArray(pm.id, pm.header));
+	data.append(pm.data);
+	raw = XCmdFrame::buildCfgCmdSetPeriodicMessage(index, pm.enable, pm.period, 
+		pm.delay, pm.header, data);
+	m_busMgr->sendMsgRaw(raw);
+}
+
+void MainWindow::deleteDevicePMSGData(int index)
+{
+	QByteArray raw;
+	raw = XCmdFrame::buildCfgCmdPeriodicMessageDelete(index);
+	m_busMgr->sendMsgRaw(raw);
+}
+
 void MainWindow::updateTxMessage_0x133(double phyValue)
 {
     PeriodMessage &pm = m_periodMessages[MSG_0x133];
@@ -354,6 +430,7 @@ void MainWindow::updateTxMessage_0x133(double phyValue)
                 arg(pm.period).\
                 arg(Utils::Base::formatByteArray(&pm.data));
 #endif
+	updateDevicePMSGData(MSG_0x133, pm);
 }
 
 void MainWindow::updateTxMessage_0x051(double phyValue)
@@ -373,6 +450,7 @@ void MainWindow::updateTxMessage_0x051(double phyValue)
                 arg(pm.period).\
                 arg(Utils::Base::formatByteArray(&pm.data));
 #endif
+	updateDevicePMSGData(MSG_0x051, pm);
 }
 
 void MainWindow::initTxMessages()
@@ -518,24 +596,42 @@ void MainWindow::handleTick()
 #endif    
     ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];
 
-    ++m_curCycleElapsedTime;
-    ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
-    ++m_elapsedTime;
-    ui->leElapsedTime->setText(sec2HumanTime(m_elapsedTime));
-
+	ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
+	ui->leElapsedTime->setText(sec2HumanTime(m_elapsedTime));
+	
     if (m_curCycleElapsedTime == item.checkTime) {
         // do check
+#ifndef F_NO_DEBUG
+		qDebug() << tr("step %1, at second %2, check value %3,%4").\
+			arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
+#endif
 
         // go next step
         ++m_curCycleStep;
-        ui->leCurCycleStep->setText(QString::number(m_curCycleStep));
+		if (m_curCycleStep >= m_scriptConfigItems.size()) {
+			m_curCycleStep = 0;
+			m_curCycleElapsedTime = 0;
+			return;
+		}
     }
 
     if (m_curCycleElapsedTime == item.sendTime) {
+		ui->leCurCycleStep->setText(QString::number(item.seq));
+		
         // update signal value according to script
+
+#ifndef F_NO_DEBUG
+		qDebug() << tr("step %1, at second %2, update value %3,%4").\
+			arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
+#endif		
         updateTxMessage_0x133(item.ciddValue);
         updateTxMessage_0x051(item.tmValue);
+		
     }
+
+	++m_curCycleElapsedTime;    
+    ++m_elapsedTime;
+    
 }
 
 void MainWindow::on_actionConnect_triggered()
@@ -586,9 +682,14 @@ void MainWindow::on_pbStart_clicked()
 
     // add TX messages to ictis, configure signal values according
     // to first line of script
-    ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];
-    updateTxMessage_0x133(item.ciddValue);
-    updateTxMessage_0x051(item.tmValue);
+#if 0 //ndef F_NO_DEBUG
+	qDebug() << tr("step %1, at second %2, update value %3,%4").\
+		arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
+#endif    
+    //ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];	
+    //updateTxMessage_0x133(item.ciddValue);
+    //updateTxMessage_0x051(item.tmValue);
+
 
     // start timer
     m_tickTimer->start();
@@ -599,6 +700,10 @@ void MainWindow::on_pbStart_clicked()
 
 void MainWindow::on_pbStop_clicked()
 {
+	deleteDevicePMSGData(MSG_0x133);
+	deleteDevicePMSGData(MSG_0x051);
+	deleteDevicePMSGData(MSG_0x427);
+	
     m_busMgr->stop();
     m_tickTimer->stop();
 }

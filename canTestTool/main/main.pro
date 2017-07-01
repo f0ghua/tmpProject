@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui serialport network #axcontainer
+QT       += core gui serialport network
+#QT       += axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

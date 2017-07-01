@@ -6,8 +6,8 @@
 
 TEMPLATE = subdirs
 SUBDIRS = main
-SUBDIRS += libQtDbc
-main.depends = libQtDbc
+#SUBDIRS += libQtDbc
+#main.depends = libQtDbc
 
 RESOURCES += \
     main/ui/ctt.qrc

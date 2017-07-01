@@ -30,8 +30,8 @@ typedef struct ScriptConfigItem_t {
     int seq;
     int sendTime;
     int checkTime;
+    int tmValue;    // 0x51_HCU01_Spd_Req	
     int ciddValue;  // 0x113_ReMotTqReq
-    int tmValue;    // 0x51_HCU01_Spd_Req
 } ScriptConfigItem;
 
 namespace Ui {
@@ -66,6 +66,7 @@ private slots:
 private:
     void cusomizePreference();
     void buildSignalMaps();
+    int readExcelSheet2List(int idx, QList<QList<QVariant>> &res);
     void loadScripts();
     QLineEdit *getSignalWidget(const QString &name);
     int getSignalPhyValue(const QString &name, const QByteArray &data, double *value);
@@ -79,7 +80,9 @@ private:
     void initTxMessage_0x427();
     void updateTxMessage_0x133(double phyValue);
     void updateTxMessage_0x051(double phyValue);
-
+	void updateDevicePMSGData(int index, const PeriodMessage &pm);
+	void deleteDevicePMSGData(int index);
+	
     Ui::MainWindow *ui;
     static MainWindow *m_selfRef;
     XBusMgr *m_busMgr = NULL;
