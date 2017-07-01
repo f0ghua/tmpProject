@@ -197,11 +197,24 @@ void MainWindow::loadScripts()
     QList<QList<QVariant>> llistVars;
     readExcelSheet2List(1, llistVars);
 #ifndef F_NO_DEBUG
-    for (int col = 0; col < llistVars.size(); ++col) {
-        QList<QVariant> &rowList = llistVars[col];
-        for (int row = 0; row < rowList.size(); ++row) {
-            qDebug() << tr("[%1, %2] var = %3").arg(col).arg(row).arg(rowList[row].toDouble());
+    int startRow = 1, endRow = 157;
+    int sequence = 1;
+    for (int row = startRow; row <= endRow/*llistVars.size()*/; ++row) {
+        QList<QVariant> &rowList = llistVars[row];
+        QString line;
+
+        for (int col = 0; col < rowList.size(); ++col) {
+            //qDebug() << tr("[%1, %2] var = %3").arg(row).arg(col).arg(rowList[col].toDouble());
+            double value = rowList[col].toDouble();
+            if (col == 0) {
+                if (value != 0) sequence = value;
+                line.append(QString::number(sequence));
+            } else {
+                line.append(QString::number(value));
+            }
+            if (col != (rowList.size()-1)) line.append(" ");
         }
+        qDebug() << line;
     }
 #endif
 #endif

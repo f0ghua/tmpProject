@@ -6,6 +6,7 @@
 
 QT       += core gui serialport network
 #QT       += axcontainer
+#DEFINES  += QAXOBJECT_SUPPORT
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
