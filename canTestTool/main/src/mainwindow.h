@@ -62,6 +62,7 @@ private slots:
     void on_pbStart_clicked();
     void on_pbStop_clicked();
     void on_pushButton_clicked();
+    void on_pbActive_clicked();
 
 private:
     void cusomizePreference();
@@ -80,6 +81,7 @@ private:
     void initTxMessage_0x427();
     void updateTxMessage_0x133(double phyValue);
     void updateTxMessage_0x051(double phyValue);
+    void updateTxMessage_0x427(double phyValue = 0);
 	void updateDevicePMSGData(int index, const PeriodMessage &pm);
 	void deleteDevicePMSGData(int index);
 	
@@ -89,6 +91,8 @@ private:
     ConnectDialog *m_connectDialog = NULL;
     DeviceConfig *m_configDialog = NULL;
     bool m_isTestRunning = false;
+	double m_sigVal_MCU_ActTrq = 0;
+	double m_sigVal_TM01_Machine_Spd = 0;
     qint64 m_baseTime;
     QDateTime m_startTime;
     qint64 m_elapsedTime = 0;

@@ -314,6 +314,7 @@ void MainWindow::updateSignalValues(const XBusFrame &frame)
                 valueErrorAlert(errMsg);
             }
             UPDATE_SIGVALUE("MCU_ActTrq");
+			if (rc == 0) m_sigVal_MCU_ActTrq = sigPhyValue;
             break;
         }
         case 0x061:
@@ -321,6 +322,7 @@ void MainWindow::updateSignalValues(const XBusFrame &frame)
             UPDATE_SIGVALUE("TM01_DC_Bus_Vol");
             UPDATE_SIGVALUE("TM01_Phase_Current");
             UPDATE_SIGVALUE("TM01_Machine_Spd");
+            if (rc == 0) m_sigVal_TM01_Machine_Spd = sigPhyValue;
             if ((rc == 0) && (sigPhyValue > 13000)) {
                 errMsg = QString("CIDD: signal %1 error, value %2 > 13000").arg(sigName).arg(sigPhyValue);
                 valueErrorAlert(errMsg);
@@ -451,6 +453,32 @@ void MainWindow::updateTxMessage_0x051(double phyValue)
                 arg(Utils::Base::formatByteArray(&pm.data));
 #endif
 	updateDevicePMSGData(MSG_0x051, pm);
+}
+
+void MainWindow::updateTxMessage_0x427(double phyValue)
+{
+	Q_UNUSED(phyValue);
+	
+    PeriodMessage &pm = m_periodMessages[MSG_0x427];
+
+#if 0	
+    QByteArray &payload = pm.data;
+
+    if (pm.pMsg != NULL) {
+        Vector::DBC::Signal *pSignal = &(pm.pMsg->m_signals["HCU01_Spd_Req"]);
+        double rawValue = pSignal->physicalToRawValue(phyValue);
+        pSignal->encode((quint8 *)payload.data(), rawValue);
+    }
+#ifndef F_NO_DEBUG
+    qDebug() << tr("[0x051]update: H:%1, I:%2, P:%3, D:%4").\
+                arg(pm.header).\
+                arg(Utils::Base::formatHexNum(pm.id)).\
+                arg(pm.period).\
+                arg(Utils::Base::formatByteArray(&pm.data));
+#endif
+#endif
+
+	updateDevicePMSGData(MSG_0x427, pm);
 }
 
 void MainWindow::initTxMessages()
@@ -605,6 +633,14 @@ void MainWindow::handleTick()
 		qDebug() << tr("step %1, at second %2, check value %3,%4").\
 			arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
 #endif
+		if (qAbs(m_sigVal_MCU_ActTrq - item.ciddValue) > 100) {
+			QString errMsg = QString("CIDD: signal abs(MCU_ActTrq - ReMotTqReq) > 100");
+			valueErrorAlert(errMsg);
+		}
+		if (qAbs(m_sigVal_TM01_Machine_Spd - item.tmValue) > 3500) {
+			QString errMsg = QString("CIDD: signal abs(TM01_Machine_Spd - HCU01_Spd_Req) > 3500");
+			valueErrorAlert(errMsg);
+		}
 
         // go next step
         ++m_curCycleStep;
@@ -712,4 +748,9 @@ void MainWindow::on_pushButton_clicked()
 {
     ui->pleErrorInfo->clear();
     ui->lblIndicator->setPixmap(QPixmap(":images/green.png"));
+}
+
+void MainWindow::on_pbActive_clicked()
+{
+    updateTxMessage_0x427();
 }
