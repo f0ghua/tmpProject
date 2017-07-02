@@ -8,6 +8,8 @@
 
 #include "DBC.h"
 
+#define SIG_INVALID_VALUE   0x10000
+
 class QLineEdit;
 class XBusMgr;
 class XBusFrame;
@@ -68,6 +70,7 @@ private:
     void cusomizePreference();
     void buildSignalMaps();
     int readExcelSheet2List(int idx, QList<QList<QVariant>> &res);
+    int loadScriptsFromFile();
     void loadScripts();
     QLineEdit *getSignalWidget(const QString &name);
     int getSignalPhyValue(const QString &name, const QByteArray &data, double *value);
@@ -90,9 +93,10 @@ private:
     XBusMgr *m_busMgr = NULL;
     ConnectDialog *m_connectDialog = NULL;
     DeviceConfig *m_configDialog = NULL;
+    QString m_scriptFileName;
     bool m_isTestRunning = false;
-	double m_sigVal_MCU_ActTrq = 0;
-	double m_sigVal_TM01_Machine_Spd = 0;
+    double m_sigVal_MCU_ActTrq = SIG_INVALID_VALUE;
+    double m_sigVal_TM01_Machine_Spd = SIG_INVALID_VALUE;
     qint64 m_baseTime;
     QDateTime m_startTime;
     qint64 m_elapsedTime = 0;

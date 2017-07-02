@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_logger->startLog("./log.bf", 1024*1024, 2);
     m_busMgr = new XBusMgr(this);
     m_connectDialog = new ConnectDialog(m_busMgr, this);
+    m_scriptFileName = "./script.txt";
     m_baseTime = -1;
     buildSignalMaps();
     initTxMessages();
@@ -184,14 +185,61 @@ int MainWindow::readExcelSheet2List(int idx, QList<QList<QVariant>> &res)
 }
 #endif
 
+int MainWindow::loadScriptsFromFile()
+{
+    QFile *inFile = new QFile(m_scriptFileName);
+    QString line;
+
+    if (!inFile->open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        delete inFile;
+        return -1;
+    }
+
+    int sequence = -1;
+    ScriptConfigItem item;
+    m_scriptConfigItems.clear();
+    while (!inFile->atEnd())
+    {
+        line = QString(inFile->readLine().simplified());
+        if (line.startsWith("#"))
+            continue;
+        QStringList sl = line.split(' ');
+        if (sl.size() != 4)
+            continue;
+
+        if (sl.at(0).toInt() != sequence) {
+            // new item, send define
+            if (sequence != -1) // skip the first one
+                m_scriptConfigItems.append(item);
+
+            sequence = sl.at(0).toInt();
+            item.seq = sequence;
+            item.sendTime = sl.at(1).toInt();
+            item.tmValue = sl.at(2).toDouble();
+            item.ciddValue = sl.at(3).toDouble();
+            item.checkTime = -1;
+        } else {
+            // check define
+            item.checkTime = sl.at(1).toInt();
+        }
+    }
+
+    // add last one
+    m_scriptConfigItems.append(item);
+
+    inFile->close();
+    delete inFile;
+}
+
 void MainWindow::loadScripts()
 {
-    m_scriptConfigItems.clear();
+    loadScriptsFromFile();
 
- 	m_scriptConfigItems.append({1, 0, 6, 200, 10});
-	m_scriptConfigItems.append({2, 12, 36, 3900, 180});
+    //m_scriptConfigItems.clear();
+    //m_scriptConfigItems.append({1, 0, 6, 200, 10});
+    //m_scriptConfigItems.append({2, 12, 36, 3900, 180});
 	//m_scriptConfigItems.append({3, 39, 179, 3900, 71});
-
 
 #ifdef QAXOBJECT_SUPPORT
     QList<QList<QVariant>> llistVars;
@@ -219,6 +267,15 @@ void MainWindow::loadScripts()
 #endif
 #endif
 
+#ifndef F_NO_DEBUG
+    qDebug() << "load script success, items:";
+    for (int i = 0; i < m_scriptConfigItems.size(); ++i) {
+        ScriptConfigItem &item = m_scriptConfigItems[i];
+        qDebug() << tr("%1 %2 %3 %4 %5").\
+                    arg(item.seq).arg(item.sendTime).arg(item.checkTime).\
+                    arg(item.tmValue).arg(item.ciddValue);
+    }
+#endif
 }
 
 int MainWindow::getSignalPhyValue(const QString &name, const QByteArray &data, double *value)
@@ -632,6 +689,8 @@ static inline QString sec2HumanTime(qint64 seconds)
 
 void MainWindow::handleTick()
 {
+    bool isCheckNeeded = true;
+
 #ifndef F_NO_DEBUG        
     //qDebug() << tr("tick timer %1").arg(QDateTime::currentMSecsSinceEpoch());
 #endif    
@@ -640,30 +699,6 @@ void MainWindow::handleTick()
 	ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
 	ui->leElapsedTime->setText(sec2HumanTime(m_elapsedTime));
 	
-    if (m_curCycleElapsedTime == item.checkTime) {
-        // do check
-#ifndef F_NO_DEBUG
-		qDebug() << tr("step %1, at second %2, check value %3,%4").\
-			arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
-#endif
-		if (qAbs(m_sigVal_MCU_ActTrq - item.ciddValue) > 100) {
-			QString errMsg = QString("CIDD: signal abs(MCU_ActTrq - ReMotTqReq) > 100");
-			valueErrorAlert(errMsg);
-		}
-		if (qAbs(m_sigVal_TM01_Machine_Spd - item.tmValue) > 3500) {
-			QString errMsg = QString("CIDD: signal abs(TM01_Machine_Spd - HCU01_Spd_Req) > 3500");
-			valueErrorAlert(errMsg);
-		}
-
-        // go next step
-        ++m_curCycleStep;
-		if (m_curCycleStep >= m_scriptConfigItems.size()) {
-			m_curCycleStep = 0;
-			m_curCycleElapsedTime = 0;
-			return;
-		}
-    }
-
     if (m_curCycleElapsedTime == item.sendTime) {
 		ui->leCurCycleStep->setText(QString::number(item.seq));
 		
@@ -671,11 +706,45 @@ void MainWindow::handleTick()
 
 #ifndef F_NO_DEBUG
 		qDebug() << tr("step %1, at second %2, update value %3,%4").\
-			arg(m_curCycleStep).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
+            arg(item.seq).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
 #endif		
         updateTxMessage_0x133(item.ciddValue);
         updateTxMessage_0x051(item.tmValue);
 		
+        if (item.checkTime == -1)
+            isCheckNeeded = false;
+    }
+
+    if (isCheckNeeded && (m_curCycleElapsedTime == item.checkTime)) {
+    // do check
+#ifndef F_NO_DEBUG
+        qDebug() << tr("step %1, at second %2, check value %3,%4").\
+            arg(item.seq).arg(m_curCycleElapsedTime).arg(item.ciddValue).arg(item.tmValue);
+#endif
+        if ((m_sigVal_MCU_ActTrq != SIG_INVALID_VALUE) &&
+            (qAbs(m_sigVal_MCU_ActTrq - item.ciddValue) > 100)) {
+            QString errMsg = QString("CIDD: signal abs(MCU_ActTrq - ReMotTqReq) > 100");
+            valueErrorAlert(errMsg);
+        }
+        if ((m_sigVal_MCU_ActTrq != SIG_INVALID_VALUE) &&
+            (qAbs(m_sigVal_TM01_Machine_Spd - item.tmValue) > 3500)) {
+            QString errMsg = QString("CIDD: signal abs(TM01_Machine_Spd - HCU01_Spd_Req) > 3500");
+            valueErrorAlert(errMsg);
+        }
+    }
+
+    if ((!isCheckNeeded) ||
+        (m_curCycleElapsedTime == item.checkTime)) {
+
+        // go next step
+        ++m_curCycleStep;
+
+        // if reach the end, recycle
+        if (m_curCycleStep >= m_scriptConfigItems.size()) {
+            m_curCycleStep = 0;
+            m_curCycleElapsedTime = 0;
+            return;
+        }
     }
 
 	++m_curCycleElapsedTime;    
