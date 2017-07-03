@@ -28,7 +28,6 @@ XBusMgr::XBusMgr(QObject *parent) : QObject(parent)
     }
 
     initHAL(0);
-    start();
 }
 
 void XBusMgr::initHAL(int mode)

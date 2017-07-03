@@ -50,6 +50,9 @@
        </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="leReMotDCI">
+         <property name="toolTip">
+          <string>0xFB[ReMotDCI]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -84,6 +87,9 @@
        </item>
        <item row="3" column="1">
         <widget class="QLineEdit" name="leReMotPhaACrrt">
+         <property name="toolTip">
+          <string>0x303[ReMotPhaACrrt]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -101,6 +107,9 @@
        </item>
        <item row="4" column="1">
         <widget class="QLineEdit" name="leMCU_ActSpd">
+         <property name="toolTip">
+          <string>0xFB[MCU_ActSpd]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -118,6 +127,9 @@
        </item>
        <item row="5" column="1">
         <widget class="QLineEdit" name="leMCU_ActTrq">
+         <property name="toolTip">
+          <string>0xFB[MCU_ActTrq]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -135,6 +147,9 @@
        </item>
        <item row="6" column="1">
         <widget class="QLineEdit" name="leReMotT">
+         <property name="toolTip">
+          <string>0x303[ReMotT]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -152,6 +167,9 @@
        </item>
        <item row="7" column="1">
         <widget class="QLineEdit" name="leReMotIGBTT">
+         <property name="toolTip">
+          <string>0x303[ReMotIGBTT]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -169,6 +187,9 @@
        </item>
        <item row="8" column="1">
         <widget class="QLineEdit" name="leReMotTqReq">
+         <property name="toolTip">
+          <string>0x133[ReMotTqReq]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -195,6 +216,9 @@
        </item>
        <item row="0" column="1">
         <widget class="QLineEdit" name="leTM01_DC_Bus_Vol">
+         <property name="toolTip">
+          <string>0x061[TM01_DC_Bus_Vol]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -212,6 +236,9 @@
        </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="leTM03_Chart2Value">
+         <property name="toolTip">
+          <string>0x1AA[TM03_Chart2Value]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -246,6 +273,9 @@
        </item>
        <item row="3" column="1">
         <widget class="QLineEdit" name="leTM01_Phase_Current">
+         <property name="toolTip">
+          <string>[0x061]TM01_Phase_Current</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -263,6 +293,9 @@
        </item>
        <item row="4" column="1">
         <widget class="QLineEdit" name="leTM01_Machine_Spd">
+         <property name="toolTip">
+          <string>0x061[TM01_Machine_Spd]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -280,6 +313,9 @@
        </item>
        <item row="5" column="1">
         <widget class="QLineEdit" name="leTM03_Chart1Value">
+         <property name="toolTip">
+          <string>0x1AA[TM03_Chart1Value]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -297,6 +333,9 @@
        </item>
        <item row="6" column="1">
         <widget class="QLineEdit" name="leTM02_MachineTemp">
+         <property name="toolTip">
+          <string>[0x062]TM02_MachineTemp</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -314,6 +353,9 @@
        </item>
        <item row="7" column="1">
         <widget class="QLineEdit" name="leTM02_InvTemp">
+         <property name="toolTip">
+          <string>0x062[TM02_InvTemp]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -331,6 +373,9 @@
        </item>
        <item row="8" column="1">
         <widget class="QLineEdit" name="leHCU01_Spd_Req">
+         <property name="toolTip">
+          <string>0x051[HCU01_Spd_Req]</string>
+         </property>
          <property name="text">
           <string>N/A</string>
          </property>
@@ -541,8 +586,9 @@
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
-     <string>About</string>
+     <string>Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -572,6 +618,11 @@
   <action name="actionDevice_Config">
    <property name="text">
     <string>Device Config</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

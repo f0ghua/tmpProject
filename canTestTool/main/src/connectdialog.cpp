@@ -70,12 +70,18 @@ void ConnectDialog::updateDeviceConnState(int success)
 		//raw = XCmdFrame::buildCfgCmdEnableInterfaces();
 		//m_pro->sendMsgRaw(raw);
 
-        // enable long timestamp
-		raw = XCmdFrame::buildCfgCmdTimpStampMode();
-		m_mgr->sendMsgRaw(raw);
-		
-		raw = XCmdFrame::buildCfgCmdGetVersion();
-		m_mgr->sendMsgRaw(raw);
+        QByteArray raw = XCmdFrame::buildCfgCmdReset();
+        m_mgr->sendMsgRaw(raw);
+        
+        QTimer::singleShot(100, this, [=](){
+            QByteArray raw = XCmdFrame::buildCfgCmdTimpStampMode();
+            m_mgr->sendMsgRaw(raw);
+            
+            raw = XCmdFrame::buildCfgCmdGetVersion();
+		    m_mgr->sendMsgRaw(raw);
+            
+        });
+
 #ifndef F_NO_DEBUG
         //qDebug() << tr("[%1], send cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
 #endif		

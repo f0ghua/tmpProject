@@ -16,6 +16,14 @@ TEMPLATE = app
 top_srcdir = $$PWD
 top_builddir = $$shadowed($$PWD)
 
+# auto touch aboutdialog to update release datetime
+versionTarget.target = extra
+versionTarget.depends = FORCE
+win32: versionTarget.commands = touch.exe $$top_srcdir/src/aboutdialog.cpp
+else:  versionTarget.commands = touch $$top_srcdir/src/aboutdialog.cpp
+PRE_TARGETDEPS += extra
+QMAKE_EXTRA_TARGETS += versionTarget
+
 CONFIG(release, debug|release): {
     DEFINES += F_NO_DEBUG
     #DEFINES += F_ENABLE_TRACEFILE
@@ -52,7 +60,8 @@ SOURCES += \
     src/xcmdframe.cpp \
     src/busengine.cpp \
     src/deviceconfig.cpp \
-    src/serialworker.cpp
+    src/serialworker.cpp \
+    src/aboutdialog.cpp
 
 HEADERS  += \
     src/mainwindow.h \
@@ -67,7 +76,8 @@ HEADERS  += \
     src/xcmdframe.h \
     src/busengine.h \
     src/deviceconfig.h \
-    src/serialworker.h
+    src/serialworker.h \
+    src/aboutdialog.h
 
 FORMS    += \
     ui/mainwindow.ui \

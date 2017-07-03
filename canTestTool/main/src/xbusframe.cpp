@@ -662,16 +662,19 @@ QByteArray XBusFrame::buildLinFrame(quint8 id, QByteArray &data, quint8 chksum)
 
 QString XBusFrame::toString(qint64 baseTime) const
 {
-    qint64 elapsedMs = (m_timestamp >= baseTime)?
+    qint64 elapsedMs = (m_timestamp >= (quint64)baseTime)?
         (m_timestamp - baseTime):
         (QDateTime::currentMSecsSinceEpoch() - baseTime);
 
+#ifndef F_NO_DEBUG
+    //qDebug() << QObject::tr("m_timestep = %1, baseTime = %2").arg(m_timestamp).arg(baseTime);
+#endif
     QString ts = QString("%1.%2").arg(elapsedMs/1000).arg(elapsedMs%1000,3,10,QChar('0'));
     return QString("%1 %2 %3 %4 %5").\
         arg(ts, -16, QChar(' ')).\
         arg(isReceived()?QStringLiteral("Rx"):QStringLiteral("Tx")).\
         arg(getBusTypeDescriptionByIndex(m_bus)).\
-        arg(Utils::Base::formatHexNum(id())).\
+        arg("0x" + QString::number(id(), 16).toUpper().rightJustified(3,'0')).\
         arg(m_data.toHex().constData());
 }
 

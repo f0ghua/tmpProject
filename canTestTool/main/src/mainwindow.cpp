@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "connectdialog.h"
+#include "aboutdialog.h"
 #include "xbusmgr.h"
 #include "xframelogger.h"
 #include "deviceconfig.h"
@@ -10,6 +11,7 @@
 #include <QDesktopWidget>
 #include <QFont>
 #include <QDateTime>
+#include <QMessageBox>
 #include <QFileInfo>
 #ifdef QAXOBJECT_SUPPORT
 #include <QAxObject>
@@ -83,7 +85,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     cusomizePreference();
     m_logger = new XFrameLogger(this);
-    m_logger->startLog("./log.bf", 1024*1024, 2);
     m_busMgr = new XBusMgr(this);
     m_connectDialog = new ConnectDialog(m_busMgr, this);
     m_scriptFileName = "./script.txt";
@@ -230,6 +231,8 @@ int MainWindow::loadScriptsFromFile()
 
     inFile->close();
     delete inFile;
+
+    return 0;
 }
 
 void MainWindow::loadScripts()
@@ -306,14 +309,13 @@ QLineEdit *MainWindow::getSignalWidget(const QString &name)
 
 void MainWindow::valueErrorAlert(const QString &errMsg)
 {
+    // send terminate message and stop the test
+    //on_pbStop_clicked();
+
     QString text = Utils::Base::getDateTimeFormat1() + " " + errMsg + "\n";
     ui->pleErrorInfo->moveCursor(QTextCursor::Start);
     ui->pleErrorInfo->insertPlainText(text);
-
-    // send terminate message and stop the test
-    m_busMgr->stop();
-    m_tickTimer->stop();
-    ui->lblIndicator->setPixmap(QPixmap(":images/red.png"));
+    ui->lblIndicator->setPixmap(QPixmap(":images/red.png")); 
 }
 
 #define UPDATE_SIGVALUE(name) \
@@ -452,12 +454,15 @@ void MainWindow::processReceivedMessages()
         if (!frame.isValid())
             continue;
 
-        if (m_baseTime == -1) {
+        if (m_baseTime == -1) {        
             m_baseTime = frame.timestamp();
+#ifndef F_NO_DEBUG
+            qDebug() << tr("reset base time to %1").arg(m_baseTime);
+#endif            
         }
 
 #ifndef F_NO_DEBUG
-        qDebug() << frame.toString(m_baseTime);
+        //qDebug() << frame.toString(m_baseTime);
 #endif
         updateSignalValues(frame);
 
@@ -470,6 +475,9 @@ void MainWindow::updateDevicePMSGData(int index, const PeriodMessage &pm)
 	QByteArray data;
 	QByteArray raw;
 
+#ifndef F_NO_DEBUG
+    //return;
+#endif
 	data.clear();
 	data.append(XBusFrame::buildIdArray(pm.id, pm.header));
 	data.append(pm.data);
@@ -495,7 +503,7 @@ void MainWindow::updateTxMessage_0x133(double phyValue)
         double rawValue = pSignal->physicalToRawValue(phyValue);
         pSignal->encode((quint8 *)payload.data(), rawValue);
     }
-#ifndef F_NO_DEBUG
+#if 0//ndef F_NO_DEBUG
     qDebug() << tr("[0x133]update: H:%1, I:%2, P:%3, D:%4").\
                 arg(pm.header).\
                 arg(Utils::Base::formatHexNum(pm.id)).\
@@ -515,7 +523,7 @@ void MainWindow::updateTxMessage_0x051(double phyValue)
         double rawValue = pSignal->physicalToRawValue(phyValue);
         pSignal->encode((quint8 *)payload.data(), rawValue);
     }
-#ifndef F_NO_DEBUG
+#if 0//ndef F_NO_DEBUG
     qDebug() << tr("[0x051]update: H:%1, I:%2, P:%3, D:%4").\
                 arg(pm.header).\
                 arg(Utils::Base::formatHexNum(pm.id)).\
@@ -674,6 +682,18 @@ int MainWindow::buildPeriodMessageEx(int bus, quint16 msgId, PeriodMessage *pPm)
     return 0;
 }
 
+void MainWindow::resetDevice()
+{
+    QByteArray raw = XCmdFrame::buildCfgCmdReset();
+    m_busMgr->sendMsgRaw(raw);
+
+    QTimer::singleShot(100, this, [=](){
+        QByteArray raw = XCmdFrame::buildCfgCmdTimpStampMode();
+        m_busMgr->sendMsgRaw(raw);
+        m_baseTime = -1;
+    });
+}
+
 static inline QString sec2HumanTime(qint64 seconds)
 {
     qint64 days = seconds/86400;
@@ -694,6 +714,17 @@ void MainWindow::handleTick()
 #ifndef F_NO_DEBUG        
     //qDebug() << tr("tick timer %1").arg(QDateTime::currentMSecsSinceEpoch());
 #endif    
+
+    if (!m_isTicked) {
+        m_baseTime = -1;
+        // start log
+        m_logger->startLog("./log.bf", 1024*1024, 2);
+        // start receiving data
+        m_busMgr->start();
+
+        m_isTicked = true;
+    }
+
     ScriptConfigItem &item = m_scriptConfigItems[m_curCycleStep];
 
 	ui->leCurCycleElapsedTime->setText(sec2HumanTime(m_curCycleElapsedTime));
@@ -723,12 +754,15 @@ void MainWindow::handleTick()
 #endif
         if ((m_sigVal_MCU_ActTrq != SIG_INVALID_VALUE) &&
             (qAbs(m_sigVal_MCU_ActTrq - item.ciddValue) > 100)) {
-            QString errMsg = QString("CIDD: signal abs(MCU_ActTrq - ReMotTqReq) > 100");
+            QString errMsg = QString("CIDD: signal abs(MCU_ActTrq[%1] - ReMotTqReq[%2]) > 100").\
+                arg(m_sigVal_MCU_ActTrq).arg(item.ciddValue);
             valueErrorAlert(errMsg);
         }
-        if ((m_sigVal_MCU_ActTrq != SIG_INVALID_VALUE) &&
+        
+        if ((m_sigVal_TM01_Machine_Spd != SIG_INVALID_VALUE) &&
             (qAbs(m_sigVal_TM01_Machine_Spd - item.tmValue) > 3500)) {
-            QString errMsg = QString("CIDD: signal abs(TM01_Machine_Spd - HCU01_Spd_Req) > 3500");
+            QString errMsg = QString("TM: signal abs(TM01_Machine_Spd[%1] - HCU01_Spd_Req[%2]) > 3500").\
+                arg(m_sigVal_TM01_Machine_Spd).arg(item.tmValue);
             valueErrorAlert(errMsg);
         }
     }
@@ -772,10 +806,39 @@ void MainWindow::on_actionDevice_Config_triggered()
 
 }
 
+// Actually we start the test after the 1 interval later(which means in the 1st cycle
+// of handleTick). The is make sense, because CIDD need active first. we give enough time
+// to it to wake up.
 void MainWindow::on_pbStart_clicked()
 {
     // To start the test, we should do following tasks
+    if (m_scriptConfigItems.isEmpty()) {
+        QMessageBox::warning(NULL,
+                tr("Warning"),
+                tr("There has no test case been loaded.")
+                //QMessageBox::Yes | QMessageBox::No| QMessageBox::Cancel,
+                //QMessageBox::Cancel
+                             );
+        //QCoreApplication::exit();
+        return;
+    }
 
+    if (!m_busMgr->getHwReady()) {
+        QMessageBox::warning(NULL,
+                tr("Warning"),
+                tr("Please connect to the device before running the test.")
+                //QMessageBox::Yes | QMessageBox::No| QMessageBox::Cancel,
+                //QMessageBox::Cancel
+                             );
+        return;
+    }
+
+    // We should not reset device here, because that will cause no timestamps 
+    // in frames while the reset execution. so put reset when connect to 
+    // the device.
+    
+    //resetDevice();
+    
     // reset all values present on ui to default
     for (quint8 i = 0; i < ARRAY_SIZE(signalInfoList); ++i) {
         SignalInfo &si = signalInfoList[i];
@@ -784,6 +847,8 @@ void MainWindow::on_pbStart_clicked()
             leSignal->setText("N/A");
         }
     }
+    m_sigVal_MCU_ActTrq = SIG_INVALID_VALUE;
+    m_sigVal_TM01_Machine_Spd = SIG_INVALID_VALUE;
     on_pushButton_clicked();
 
     // reset elapsed time to 0
@@ -808,16 +873,20 @@ void MainWindow::on_pbStart_clicked()
     //updateTxMessage_0x133(item.ciddValue);
     //updateTxMessage_0x051(item.tmValue);
 
+    // send ACTIVE message to CIDD
+    QTimer::singleShot(200, this, [=](){
+        updateTxMessage_0x427();
+    });
 
     // start timer
     m_tickTimer->start();
-
-    // start test
-    m_busMgr->start();
+    m_isTicked = false;
 }
 
 void MainWindow::on_pbStop_clicked()
 {
+    m_logger->stopLog();
+
 	deleteDevicePMSGData(MSG_0x133);
 	deleteDevicePMSGData(MSG_0x051);
 	deleteDevicePMSGData(MSG_0x427);
@@ -835,4 +904,10 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pbActive_clicked()
 {
     updateTxMessage_0x427();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    AboutDialog dialog(this);
+    dialog.exec();
 }

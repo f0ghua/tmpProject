@@ -9,11 +9,11 @@
 #include "DBC.h"
 
 #define SIG_INVALID_VALUE   0x10000
-
 class QLineEdit;
 class XBusMgr;
 class XBusFrame;
 class ConnectDialog;
+class AboutDialog;
 class XFrameLogger;
 class DeviceConfig;
 
@@ -66,6 +66,8 @@ private slots:
     void on_pushButton_clicked();
     void on_pbActive_clicked();
 
+    void on_actionAbout_triggered();
+
 private:
     void cusomizePreference();
     void buildSignalMaps();
@@ -87,12 +89,14 @@ private:
     void updateTxMessage_0x427(double phyValue = 0);
 	void updateDevicePMSGData(int index, const PeriodMessage &pm);
 	void deleteDevicePMSGData(int index);
+	void resetDevice();
 	
     Ui::MainWindow *ui;
     static MainWindow *m_selfRef;
     XBusMgr *m_busMgr = NULL;
     ConnectDialog *m_connectDialog = NULL;
     DeviceConfig *m_configDialog = NULL;
+    AboutDialog *m_aboutDialog = NULL;
     QString m_scriptFileName;
     bool m_isTestRunning = false;
     double m_sigVal_MCU_ActTrq = SIG_INVALID_VALUE;
@@ -107,6 +111,7 @@ private:
     PeriodMessage m_periodMessages[PERIOD_MSG_NUM];
     QMap<QString, const Vector::DBC::Signal *> m_signalMaps;
     QTimer *m_tickTimer;
+    bool m_isTicked = false;
     XFrameLogger *m_logger;
 };
 

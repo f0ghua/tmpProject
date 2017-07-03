@@ -43,20 +43,19 @@ void HAL::procRXChar(unsigned char c)
 
 void HAL::handleFullData(const QByteArray &raw)
 {
-#ifndef F_NO_DEBUG
-    //qDebug() << tr("hal read data [%1]").arg(Utils::Base::formatByteArray(&raw));
-#endif
-
 	XBusFrame frame(raw);
 
 	if (XBusFrame::isCommandFrame(raw)) {
 #ifndef F_NO_DEBUG
         //qDebug() << tr("[%1], got cmd frame").arg(QDateTime::currentMSecsSinceEpoch());
+        //qDebug() << tr("hal read cmd [%1]").arg(Utils::Base::formatByteArray(&raw));
 #endif
-
 		emit cmdFrameResponse(raw);
 	}
     else if (m_mgr->isRunning()){
+#ifndef F_NO_DEBUG
+        //qDebug() << tr("hal read data [%1]").arg(Utils::Base::formatByteArray(&raw));
+#endif      
         m_mgr->enqueueReceivedFrame(frame);
 		framesRapid++;
 	}
@@ -89,7 +88,7 @@ void HAL::sendRawData(const QByteArray &raw)
 
 #ifndef F_NO_DEBUG
 	//qDebug() << "writing " << buffer.length() << " bytes to serial port";
-	qDebug() << QObject::tr("send frame[%1]: %2").arg(buffer.count()).arg(Utils::Base::formatByteArray(&buffer));
+    //qDebug() << QObject::tr("send frame[%1]: %2").arg(buffer.count()).arg(Utils::Base::formatByteArray(&buffer));
 #endif
 
 	halWrite(buffer);
