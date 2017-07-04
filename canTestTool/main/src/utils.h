@@ -185,6 +185,41 @@ class Base
             
             return date;
         }
+
+        //parses the input string to grab as much of it as possible while staying alpha numeric
+        static QString grabAlphaNumeric(QString &input)
+        {
+            QString builder;
+            QChar thisChar;
+            for (int i = 0; i < input.length(); i++)
+            {
+                thisChar = input[i];
+                if (thisChar.isLetterOrNumber() || thisChar == ':' || thisChar == '~') builder.append(input[i]);
+                else
+                {
+                    //qDebug() << "i: "<< i << " len: " << input.length();
+                    if (i < (input.length() - 1)) input = input.right(input.length() - i);
+                    else input = "";
+                    return builder;
+                }
+            }
+            //qDebug() << "Reached end of string in grabAlphaNumeric";
+            input = "";
+            return builder;
+        }
+
+        static QString grabOperation(QString &input)
+        {
+            QString builder;
+            QChar thisChar = input[0];
+
+            if (thisChar == '+' || thisChar == '-' || thisChar == '*' || thisChar == '/' || thisChar == '^' || thisChar == '&' || thisChar == '|' || thisChar == '=' || thisChar == '%')
+            {
+                input = input.right(input.length() - 1);
+                builder = thisChar;
+            }
+            return builder;
+        }
 };
 
 } // namespace Helper

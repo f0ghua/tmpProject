@@ -46,6 +46,7 @@ public:
     
     quint8 protocolId() const { return m_protocolId; }
 	int bus() const { return m_bus; }
+    int bus() {return m_bus;}
 	void setBus(int i) { m_bus = i; }
 	int dlc() const { return m_data.count(); }
 	void setDlc(int dlc)

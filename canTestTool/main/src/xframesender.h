@@ -68,8 +68,8 @@ public:
 class FrameSendData : public XBusFrame
 {
 public:
-    bool enabled;
-    int count;
+    bool enabled = false;
+    int count = 0;
     QList<Trigger> triggers;
     QList<Modifier> modifiers;
 };
@@ -87,6 +87,10 @@ public slots:
 
 private:
     FrameSendData *findSendDataById(quint32 id);
+    void processModifierText(const QString &tokMod, FrameSendData *pSd);
+    void processTriggerText(const QString &tokTr, FrameSendData *pSd);
+    void parseOperandString(QStringList tokens, ModifierOperand &operand);
+    ModifierOperationType parseOperation(QString op);
 
     QList<FrameSendData> m_sendingData;
 };
