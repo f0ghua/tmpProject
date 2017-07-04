@@ -454,11 +454,13 @@ void MainWindow::processReceivedMessages()
         if (!frame.isValid())
             continue;
 
-        if (m_baseTime == -1) {        
+        if ((m_baseTime == -1) && (frame.id() == 0x133)) {
             m_baseTime = frame.timestamp();
 #ifndef F_NO_DEBUG
             qDebug() << tr("reset base time to %1").arg(m_baseTime);
-#endif            
+#endif
+            // start log
+            m_logger->startLog("./log.bf", 1024*1024, 2);
         }
 
 #ifndef F_NO_DEBUG
@@ -715,10 +717,9 @@ void MainWindow::handleTick()
     //qDebug() << tr("tick timer %1").arg(QDateTime::currentMSecsSinceEpoch());
 #endif    
 
+    // first timer update, we look as the script start point
     if (!m_isTicked) {
         m_baseTime = -1;
-        // start log
-        m_logger->startLog("./log.bf", 1024*1024, 2);
         // start receiving data
         m_busMgr->start();
 
