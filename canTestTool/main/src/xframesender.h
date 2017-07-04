@@ -86,6 +86,8 @@ public slots:
     void slotCmdParser(const QString &cmdString);
 
 private:
+    FrameSendData *findSendDataById(quint32 id);
+
     QList<FrameSendData> m_sendingData;
 };
 
