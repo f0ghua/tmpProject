@@ -11,6 +11,7 @@
 #define SIG_INVALID_VALUE   0x10000
 class QLineEdit;
 class XBusMgr;
+class XFrameSender;
 class XBusFrame;
 class ConnectDialog;
 class AboutDialog;
@@ -94,6 +95,7 @@ private:
     Ui::MainWindow *ui;
     static MainWindow *m_selfRef;
     XBusMgr *m_busMgr = NULL;
+    XFrameSender *m_frameSender = NULL;
     ConnectDialog *m_connectDialog = NULL;
     DeviceConfig *m_configDialog = NULL;
     AboutDialog *m_aboutDialog = NULL;

@@ -7,6 +7,7 @@
 #include "deviceconfig.h"
 #include "utils.h"
 #include "xcmdframe.h"
+#include "xframesender.h"
 
 #include <QDesktopWidget>
 #include <QFont>
@@ -86,6 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cusomizePreference();
     m_logger = new XFrameLogger(this);
     m_busMgr = new XBusMgr(this);
+    m_frameSender = new XFrameSender(this);
+    m_frameSender->slotCmdParser("en@0#id@0x061#bus@0#data@00112233#tr@id0x200 5ms 10x bus0,1000ms#mo@id:0x200:D7,D1=ID:0x200:D3+ID:0x200:D4&0xF0");
     m_connectDialog = new ConnectDialog(m_busMgr, this);
     m_scriptFileName = "./script.txt";
     m_baseTime = -1;

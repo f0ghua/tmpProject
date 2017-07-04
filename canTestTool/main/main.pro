@@ -61,7 +61,8 @@ SOURCES += \
     src/busengine.cpp \
     src/deviceconfig.cpp \
     src/serialworker.cpp \
-    src/aboutdialog.cpp
+    src/aboutdialog.cpp \
+    src/xframesender.cpp
 
 HEADERS  += \
     src/mainwindow.h \
@@ -77,7 +78,8 @@ HEADERS  += \
     src/busengine.h \
     src/deviceconfig.h \
     src/serialworker.h \
-    src/aboutdialog.h
+    src/aboutdialog.h \
+    src/xframesender.h
 
 FORMS    += \
     ui/mainwindow.ui \
