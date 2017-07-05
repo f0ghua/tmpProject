@@ -9,6 +9,8 @@
 #include "xcmdframe.h"
 #include "xframesender.h"
 
+#include <windows.h>
+
 #include <QDesktopWidget>
 #include <QFont>
 #include <QDateTime>
@@ -87,8 +89,6 @@ MainWindow::MainWindow(QWidget *parent) :
     cusomizePreference();
     m_logger = new XFrameLogger(this);
     m_busMgr = new XBusMgr(this);
-    m_frameSender = new XFrameSender(this);
-    m_frameSender->slotCmdParser("en@0#id@0x061#bus@0#data@00112233#tr@id0x200 5ms 10x bus0,1000ms#mo@id:0x200:D7,D1=ID:0x200:D3+ID:0x200:D4&0xF0");
     m_connectDialog = new ConnectDialog(m_busMgr, this);
     m_scriptFileName = "./script.txt";
     m_baseTime = -1;
@@ -103,6 +103,24 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_busMgr, &XBusMgr::sigUpdateDeviceList, m_connectDialog, &ConnectDialog::updateDeviceList);
     connect(m_busMgr, &XBusMgr::sigUpdateDeviceConnState, m_connectDialog, &ConnectDialog::updateDeviceConnState);
     connect(m_busMgr, &XBusMgr::frameReceived, this, &MainWindow::processReceivedMessages);
+
+    //m_busMgr->start();
+
+    m_senderThread = new QThread;
+    m_sender = new XFrameSender(m_busMgr);
+    m_sender->moveToThread(m_senderThread);
+    connect(m_senderThread, &QThread::started, m_sender, &XFrameSender::run);
+    connect(m_sender, &XFrameSender::finished, m_senderThread, &QThread::quit);
+    connect(m_sender, &XFrameSender::finished, m_sender, &XFrameSender::deleteLater);
+    connect(m_senderThread, &QThread::finished, m_senderThread, &QThread::deleteLater);
+    connect(this, &MainWindow::stopWorker, m_sender, &XFrameSender::stopThread);
+    connect(this, &MainWindow::cmd2Sender, m_sender, &XFrameSender::slotCmdParser);
+    connect(this, &MainWindow::setSenderPriority, m_sender, &XFrameSender::setWorkThreadPriority);
+    m_senderThread->start();
+    emit setSenderPriority();
+    emit cmd2Sender("en@1#id@0x061#bus@0#data@00112233#tr@1000ms#mo@D0=D0^0x01");
+    emit cmd2Sender("en@1#id@0x062#bus@0#data@00112233#tr@100ms#mo@D0=D0^0x01");
+    emit cmd2Sender("en@1#id@0x063#bus@0#data@00112233#tr@10ms#mo@D0=D0^0x01");
 
     return;
 }

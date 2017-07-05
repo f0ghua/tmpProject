@@ -67,7 +67,7 @@ void HAL::sendFrame(const XBusFrame *frame)
 
     //if (!pro->getAction()) return;
 
-    //ba = XCanFrame::buildHeader(frame->id(), frame->bus());
+    ba = XBusFrame::buildHeader(frame->id(), frame->bus());
 	buffer.append(ba);
 
     const QByteArray &payload = frame->payload();

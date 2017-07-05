@@ -60,7 +60,7 @@ void XBusMgr::setupSig(HAL *hal)
     connect(this, &XBusMgr::sigOpenDevice, m_currentHal, &HAL::sigOpenDevice, Qt::QueuedConnection);
     connect(this, &XBusMgr::sigCloseDevice, m_currentHal, &HAL::sigCloseDevice, Qt::QueuedConnection);
     connect(this, &XBusMgr::sigSendRawData, m_currentHal, &HAL::sendRawData);
-    //connect(this, &XBusMgr::sendRawFrame, m_currentHal, &HAL::sendFrame);
+    connect(this, &XBusMgr::sendRawFrame, m_currentHal, &HAL::sendFrame);
     connect(m_currentHal, &HAL::cmdFrameResponse, this, &XBusMgr::handleCmdResponse);
     connect(m_currentHal, &HAL::updateDeviceList, this, &XBusMgr::updateDeviceList);
     connect(m_currentHal, &HAL::updateDeviceConnState, this, &XBusMgr::updateDeviceConnState);

@@ -4,6 +4,9 @@
 #include "xbusframe.h"
 
 #include <QObject>
+#include <QElapsedTimer>
+
+class XBusMgr;
 
 //Stores a single trigger.
 class Trigger
@@ -68,6 +71,8 @@ public:
 class FrameSendData : public XBusFrame
 {
 public:
+    FrameSendData(int bus) : XBusFrame(bus) {}
+    
     bool enabled = false;
     int count = 0;
     QList<Trigger> triggers;
@@ -78,21 +83,38 @@ class XFrameSender : public QObject
 {
     Q_OBJECT
 public:
-    explicit XFrameSender(QObject *parent = 0);
+    explicit XFrameSender(XBusMgr *mgr, QObject *parent = 0);
 
 signals:
+    void sendFrame(const XBusFrame *, int);
+    void finished();
 
 public slots:
     void slotCmdParser(const QString &cmdString);
+#ifdef Q_OS_WIN
+    void setWorkThreadPriority();
+#endif
+    void run();
+    void stopThread();
 
 private:
+    void handleTick();
+    void processSendingData(qint64 elapsed);
+    void doModifiers(int idx);
+    int fetchOperand(int idx, ModifierOperand op);
     FrameSendData *findSendDataById(quint32 id);
     void processModifierText(const QString &tokMod, FrameSendData *pSd);
     void processTriggerText(const QString &tokTr, FrameSendData *pSd);
     void parseOperandString(QStringList tokens, ModifierOperand &operand);
     ModifierOperationType parseOperation(QString op);
 
+    XBusMgr *m_busMgr = NULL;
     QList<FrameSendData> m_sendingData;
+    bool m_abortRun = false;
+    int m_clockRate = 1; // ms
+    qint64 m_countPerMilliSecond = 1;
+    qint64 m_preTickCounter = 0;
+    QElapsedTimer m_elapsedTimer;
 };
 
 #endif // XFRAMESENDER_H

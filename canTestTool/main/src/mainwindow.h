@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QVector>
+#include <QThread>
 
 #include "DBC.h"
 
@@ -55,6 +56,11 @@ public:
     ~MainWindow();
     static MainWindow *getReference();
 
+signals:
+    void stopWorker();
+    void cmd2Sender(const QString &cmdString);
+    void setSenderPriority();
+
 public slots:
     void processReceivedMessages();
     
@@ -95,7 +101,8 @@ private:
     Ui::MainWindow *ui;
     static MainWindow *m_selfRef;
     XBusMgr *m_busMgr = NULL;
-    XFrameSender *m_frameSender = NULL;
+    XFrameSender *m_sender = NULL;
+    QThread *m_senderThread = NULL;
     ConnectDialog *m_connectDialog = NULL;
     DeviceConfig *m_configDialog = NULL;
     AboutDialog *m_aboutDialog = NULL;

@@ -23,7 +23,7 @@ public:
     };
 
 	XBusFrame(const QByteArray &data = QByteArray(), int parseFlag = ParseAll);
-    XBusFrame(int bus, bool tm, bool rx, bool cc, bool ck, const QByteArray &data);
+    XBusFrame(int bus, bool tm = false, bool rx = false, bool cc = false, bool ck = false, const QByteArray &data = QByteArray());
     QByteArray getPureRawData();
     QByteArray buildLinFrame(quint8 id, QByteArray &data, quint8 chksum = 0);
     QString getCompleCodeString();
@@ -38,7 +38,7 @@ public:
 	static void packFrame(QByteArray &data);
 	static QByteArray packFrame(const QByteArray &data);
     static bool isFrameError(QString ccodeStr);
-    static QByteArray buildHeader(quint32 id, int bus, bool tm, bool rx, FrameType type);
+    static QByteArray buildHeader(quint32 id, int bus, bool tm = false, bool rx = false, FrameType type = XBusFrame::FrameType::DataFrame);
     static QByteArray buildTailer(bool tm, quint16 timestamp);
     static QByteArray buildIdArray(quint32 id, int bus, FrameType type = XBusFrame::FrameType::DataFrame);
     static quint8 linCalculateChecksum(const QByteArray &data, quint8 id, bool isParityInc = true);
