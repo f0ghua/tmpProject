@@ -106,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //m_busMgr->start();
 
+#if 0
     m_senderThread = new QThread;
     m_sender = new XFrameSender(m_busMgr);
     m_sender->moveToThread(m_senderThread);
@@ -121,6 +122,7 @@ MainWindow::MainWindow(QWidget *parent) :
     emit cmd2Sender("en@1#id@0x061#bus@0#data@00112233#tr@1000ms#mo@D0=D0^0x01");
     emit cmd2Sender("en@1#id@0x062#bus@0#data@00112233#tr@100ms#mo@D0=D0^0x01");
     emit cmd2Sender("en@1#id@0x063#bus@0#data@00112233#tr@10ms#mo@D0=D0^0x01");
+#endif
 
     return;
 }
