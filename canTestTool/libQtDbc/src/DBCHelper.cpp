@@ -457,7 +457,7 @@ double DBCHelper::getDefaultSignalValue(
 	}
 
 	double v = getAttributeValueNum(pSignal, pNetwork, attrName, ok);
-	return (ok?v:0);
+	return ((ok&&(*ok))?v:0);
 }
 
 int DBCHelper::getMessageCycleTime(const Vector::DBC::Message *pMessage,

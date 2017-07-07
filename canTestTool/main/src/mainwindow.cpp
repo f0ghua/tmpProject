@@ -670,6 +670,7 @@ int MainWindow::buildPeriodMessage(int bus, quint16 msgId, PeriodMessage *pPm)
     pPm->header = bus;
     pPm->id = msgId;
     QByteArray ba(pMsg->size, 0);
+    payload.clear()
     payload.append(ba);
     pPm->pMsg = pMsg;
 
@@ -689,6 +690,7 @@ int MainWindow::buildPeriodMessageEx(int bus, quint16 msgId, PeriodMessage *pPm)
     pPm->header = bus;
     pPm->id = pMsg->id;
     QByteArray ba(pMsg->size, 0);
+    payload.clear()
     payload.append(ba);
 
     QMap<QString, Vector::DBC::Signal>::const_iterator end = pMsg->m_signals.constEnd();
@@ -696,7 +698,8 @@ int MainWindow::buildPeriodMessageEx(int bus, quint16 msgId, PeriodMessage *pPm)
             ci != end;
             ci++) {
         const Vector::DBC::Signal *pSignal = &ci.value();
-        double rawValue = DBCHelper::getDefaultSignalValue(pSignal, pNet, NULL);
+        bool ok;
+        double rawValue = DBCHelper::getDefaultSignalValue(pSignal, pNet, &ok);
         pSignal->encode((uint8_t *)payload.data(), rawValue);
     }
     pPm->period =
