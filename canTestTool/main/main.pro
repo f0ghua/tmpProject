@@ -89,8 +89,8 @@ FORMS    += \
 RESOURCES += \
     res/ctt.qrc
 
-#RC_FILE = canTestTool.rc
+RC_FILE = canTestTool.rc
 DESTDIR += ../output/
 INCLUDEPATH += src ../libQtDbc/inc libftd
-LIBS+= -L../output/libQtDbc -lQtDbc
+LIBS+= -L../output -lQtDbc
 

@@ -46,7 +46,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
 	m_labelLogo->setMinimumSize(QSize(64, 64));
 	m_labelLogo->setMaximumSize(QSize(64, 64));
 	m_labelLogo->setText(QStringLiteral(""));
-	m_labelLogo->setPixmap(QPixmap(QString::fromUtf8(":/images/carToy_64x64.png")));
+    m_labelLogo->setPixmap(QPixmap(QString::fromUtf8(":/images/app.png")));
 	m_labelLogo->setScaledContents(true);
 	m_labelLogo->setAlignment(Qt::AlignCenter);
 	m_horizontalLayout->addWidget(m_labelLogo);
