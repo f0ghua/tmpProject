@@ -31,8 +31,8 @@ static int luaPrt(lua_State *l)
 {    
     const char *s = luaL_checkstring(l, 1);
     stackDump(l);
-    //QTimer::singleShot(0, MainWindow::getReference(),SLOT(appendLog(s)));
-    qDebug() << s;
+    QTimer::singleShot(0, MainWindow::getReference(),SLOT(appendLog()));
+    //qDebug() << s;
     lua_pop(lua, 1);
     lua_pushinteger(l, 1234);
     return 1;
@@ -45,8 +45,9 @@ MainWindow *MainWindow::getReference()
     return m_selfRef;
 }
 
-void MainWindow::appendLog(const char *s)
+void MainWindow::appendLog()
 {
+    const char *s= "hello";
     ui->plainTextEdit->appendPlainText(s);
 }
 

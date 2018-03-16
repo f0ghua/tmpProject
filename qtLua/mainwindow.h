@@ -18,7 +18,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     static MainWindow *getReference();
-    void appendLog(const char *s);
+
+public slots:
+    void appendLog();
 
 private slots:
     void on_pushButton_clicked();
