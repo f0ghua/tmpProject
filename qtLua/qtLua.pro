@@ -58,7 +58,8 @@ SOURCES += \
     lua-5.3.4/src/lundump.c \
     lua-5.3.4/src/lutf8lib.c \
     lua-5.3.4/src/lvm.c \
-    lua-5.3.4/src/lzio.c
+    lua-5.3.4/src/lzio.c \
+    worker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -87,7 +88,8 @@ HEADERS += \
     lua-5.3.4/src/lualib.h \
     lua-5.3.4/src/lundump.h \
     lua-5.3.4/src/lvm.h \
-    lua-5.3.4/src/lzio.h
+    lua-5.3.4/src/lzio.h \
+    worker.h
 
 FORMS += \
         mainwindow.ui
