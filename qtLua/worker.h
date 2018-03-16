@@ -8,8 +8,8 @@ class Worker : public QObject
     Q_OBJECT
 public:
     explicit Worker(QObject *parent = nullptr);
-    int set(double value);
-    double get();
+    int setAttr(int value);
+    int getAttr();
 
 signals:
     void finished();
@@ -17,6 +17,7 @@ signals:
 public slots:
     void run();
     void stopThread();
+    void startScript();
 
 private:
     bool m_exit = false;

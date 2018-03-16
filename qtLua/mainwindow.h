@@ -27,6 +27,7 @@ private slots:
 
 signals:
     void stopWorker();
+    void startScript();
 
 private:
     Ui::MainWindow *ui;
