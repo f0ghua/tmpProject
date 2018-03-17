@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "datactrl.h"
 #include "luaobject.h"
 
 #include <QTimer>
@@ -12,82 +13,37 @@ extern "C"
 #include "lauxlib.h"
 }
 
-#if 0
-// Define the Lua ClassName
-const char LuaObject::className[] = "LuaObject";
+#include "LuaBridge.h"
 
-// Define the methods we will expose to Lua
-// Check luaobject.h for the definitions...
-#define method(class, name) {#name, &class::name}
-Luna<LuaObject>::RegType LuaObject::methods[] = {
-   method(LuaObject, setAttr),
-   method(LuaObject, getAttr),
-   {0,0}
-};
-#endif
-
-int lua_DataCtrl_getAttr(lua_State *lua)
+void registerDataCtrl(lua_State *L)
 {
-    DataCtrl **pptr = (DataCtrl**)luaL_checkudata(lua, 1, "DataCtrlMetaTable");
-#ifndef F_NO_DEBUG
-    qDebug() << QObject::tr("lua_DataCtrl_getAttr");
-#endif
-    lua_pushnumber(lua, (*pptr)->getAttr());
-    return 1;
-}
+    luabridge::getGlobalNamespace (L)
+      .beginNamespace ("eX")
+        .beginClass <DataCtrl> ("DataCtrl")
+          //.addData ("data", &DataCtrl::m_value)
+          .addProperty ("prop", &DataCtrl::getAttr, &DataCtrl::setAttr)
+          .addFunction("sleep", &DataCtrl::sleep)
+          .addFunction("prt", &DataCtrl::print)
+        .endClass ()
+      .endNamespace ();
 
-void registerDataCtrl(lua_State *lua, DataCtrl *dc)
-{
-    //We assume that the person is a valid pointer
-    DataCtrl **pptr = (DataCtrl**)lua_newuserdata(lua, sizeof(DataCtrl*));
-    *pptr = dc; //Store the pointer in userdata. You must take care to ensure
-                    //the pointer is valid entire time Lua has access to it.
-
-    if (luaL_newmetatable(lua, "DataCtrlMetaTable")) //This is important. Since you
-        //may invoke it many times, you should check, whether the table is newly
-        //created or it already exists
-    {
-        //The table is newly created, so we register its functions
-        lua_pushvalue(lua, -1);
-        lua_setfield(lua, -2, "__index");
-
-        luaL_Reg dcFunctions[] = {
-            "getAttr", lua_DataCtrl_getAttr,
-            nullptr, nullptr
-        };
-        luaL_register(lua, 0, dcFunctions);
-        //luaL_openlib(lua, 0, dcFunctions, 0);
-        //luaL_setfuncs(lua, dcFunctions, 0);
-    }
-
-    lua_setmetatable(lua, -2);
+    luabridge::setGlobal(L, MainWindow::getReference(), "dc");
+    // dc.prop=10
+    // print(dc.prop)
+    // dc:prt(123)
 }
 
 void MainWindow::startScript()
 {
     // Init Lua
     lua_State *L = luaL_newstate();
-    luaopen_base(L);
-    luaopen_table(L);
-    luaopen_io(L);
-    luaopen_string(L);
-    luaopen_math(L);
-    luaopen_debug(L);
-    registerDataCtrl(L, MainWindow::getReference());
-#if 0
-    // Register the LuaGameObject data type with Lua
-    Luna<LuaObject>::Register(L);
-    lua_pushlightuserdata(L, (void*)MainWindow::getReference());
-#endif
+    luaL_openlibs(L);
+    registerDataCtrl(L);
 
-    // And set the global name of this pointer
-    lua_setglobal(L, "eX");
     // Load file
     luaL_loadfile(L, "main.lua");
     // Run
     lua_pcall(L, 0, 0, 0);
-
-
 
     lua_close(L);
 }

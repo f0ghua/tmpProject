@@ -8,8 +8,10 @@ class DataCtrl : public QObject
     Q_OBJECT
 public:
     explicit DataCtrl(QObject *parent = nullptr);
-    int setAttr(int value);
-    int getAttr();
+    void setAttr(int value);
+    int getAttr() const;
+    void sleep(int ms);
+    void print(int value);
 
 signals:
 
