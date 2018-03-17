@@ -11,17 +11,17 @@ extern "C" {
 // I am using luna
 #include "luna.h"
 // The header file for the real C++ object
-#include "worker.h"
+#include "datactrl.h"
 
-class LuaWorkerObject
+class LuaObject
 {
 public:
     // Constants
     static const char className[];
-    static Luna<LuaWorkerObject>::RegType methods[];
+    static Luna<LuaObject>::RegType methods[];
 
-    LuaWorkerObject(lua_State *L);
-    ~LuaWorkerObject();
+    LuaObject(lua_State *L);
+    ~LuaObject();
     void setObject(lua_State *L);
 
     // Methods we will need to use
@@ -29,7 +29,7 @@ public:
     int setAttr(lua_State *L);
 
 private:
-    Worker *m_realObject;
+    DataCtrl *m_realObject;
 };
 
 #endif // LUAOBJECT_H

@@ -6,26 +6,7 @@
 #include <QTimer>
 #include <QDebug>
 
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
 
-//lua_State *lua;
-
-// Define the Lua ClassName
-const char LuaWorkerObject::className[] = "LuaWorkerObject";
-
-// Define the methods we will expose to Lua
-// Check luaobject.h for the definitions...
-#define method(class, name) {#name, &class::name}
-Luna<LuaWorkerObject>::RegType LuaWorkerObject::methods[] = {
-   method(LuaWorkerObject, setAttr),
-   method(LuaWorkerObject, getAttr),
-   {0,0}
-};
 
 #if 0
 static int stackDump(lua_State *l)
@@ -97,6 +78,7 @@ void Worker::stopThread()
 
 void Worker::startScript()
 {
+#if 0
     // Init Lua
     lua_State *L = luaL_newstate();
     luaopen_base(L);
@@ -105,9 +87,12 @@ void Worker::startScript()
     luaopen_string(L);
     luaopen_math(L);
     luaopen_debug(L);
+#endif
 
+#if 0
     // Register the LuaGameObject data type with Lua
     Luna<LuaWorkerObject>::Register(L);
+
     lua_pushlightuserdata(L, (void*)this);
     // And set the global name of this pointer
     lua_setglobal(L, "eX");
@@ -116,7 +101,7 @@ void Worker::startScript()
     luaL_loadfile(L, "main.lua");
     // Run
     lua_pcall(L, 0, 0, 0);
-
+#endif
 #if 0
     lua = luaL_newstate();
     if (!lua) return;
@@ -134,5 +119,7 @@ void Worker::startScript()
     //lua_setgcthreshold(lua, 0);
 #endif
 
+#if 0
     lua_close(L);
+#endif
 }

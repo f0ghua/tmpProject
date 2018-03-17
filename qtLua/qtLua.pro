@@ -60,7 +60,8 @@ SOURCES += \
     lua-5.3.4/src/lvm.c \
     lua-5.3.4/src/lzio.c \
     worker.cpp \
-    luaobject.cpp
+    luaobject.cpp \
+    datactrl.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -92,9 +93,10 @@ HEADERS += \
     lua-5.3.4/src/lzio.h \
     worker.h \
     luaobject.h \
-    luna.h
+    luna.h \
+    datactrl.h
 
 FORMS += \
         mainwindow.ui
 
-INCLUDEPATH += lua-5.3.4/src
+INCLUDEPATH += lua-5.3.4/src LuaBridge/Source/LuaBridge
