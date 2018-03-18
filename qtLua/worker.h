@@ -8,8 +8,12 @@ class Worker : public QObject
     Q_OBJECT
 public:
     explicit Worker(QObject *parent = nullptr);
-    int setAttr(int value);
-    int getAttr();
+    ~Worker();
+    static Worker *getReference() {return m_selfRef;}
+    void setAttr(int value);
+    int getAttr() const;
+    void sleep(int ms);
+    void print(int value);
 
 signals:
     void finished();
@@ -17,10 +21,12 @@ signals:
 public slots:
     void run();
     void stopThread();
-    void startScript();
+    void runScript();
 
 private:
+    static Worker *m_selfRef;
     bool m_exit = false;
+    int m_value;
 };
 
 #endif // WORKER_H

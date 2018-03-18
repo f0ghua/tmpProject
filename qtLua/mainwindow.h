@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include <QThread>
 
-#include "datactrl.h"
 #include "worker.h"
 
 namespace Ui {
@@ -18,7 +17,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    static DataCtrl *getReference();
 
 public slots:
     void appendLog();
@@ -28,14 +26,10 @@ private slots:
 
 signals:
     void sigStopWorker();
-    void sigStartScript();
+    void sigRunScript();
 
 private:
-    void startScript();
-
     Ui::MainWindow *ui;
-    static DataCtrl *m_selfRef;
-    DataCtrl *m_data;
     Worker *m_worker;
     QThread *m_workerThread = NULL;
 };

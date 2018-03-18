@@ -61,7 +61,8 @@ SOURCES += \
     lua-5.3.4/src/lzio.c \
     worker.cpp \
     luaobject.cpp \
-    datactrl.cpp
+    datactrl.cpp \
+    luactrl.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -94,7 +95,8 @@ HEADERS += \
     worker.h \
     luaobject.h \
     luna.h \
-    datactrl.h
+    datactrl.h \
+    luactrl.h
 
 FORMS += \
         mainwindow.ui
